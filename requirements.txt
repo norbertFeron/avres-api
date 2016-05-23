@@ -1,0 +1,4 @@
+configparser==3.5.0
+Flask==0.10.1
+Flask-RESTful==0.3.5
+neo4j-driver==1.0.0
