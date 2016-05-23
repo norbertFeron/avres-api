@@ -38,5 +38,3 @@ if __name__ == '__main__':
             port=int(config['api']['port']),
             debug=config['api']['debug']
             )
-
-# todo requirements.txt
