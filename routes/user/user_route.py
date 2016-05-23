@@ -1,4 +1,4 @@
-from flask_restful import Resource, reqparse, abort
+from flask_restful import Resource, reqparse
 from neo4j.v1 import ResultError
 from connector import neo4j
 
