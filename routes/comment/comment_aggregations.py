@@ -23,3 +23,4 @@ class CountCommentsByAuthor(Resource):
             return result.single()['nb_comments'], 200
         except ResultError:
             return "ERROR", 500
+

@@ -39,3 +39,16 @@ class GetAllContentsByType(Resource):
         for record in result:
             contents.append(record['find'].properties)
         return contents
+
+
+class GetAllContentsByAuthor(Resource):
+    def get(self, author_id):
+        req = "MATCH (author:user {uid: %d})-[:authorship]->(c:content) RETURN c" % author_id
+        args = parser.parse_args()
+        if args['limit']:
+            req += " LIMIT %s" % args['limit']
+        result = neo4j.query_neo4j(req)
+        contents = []
+        for record in result:
+            contents.append(record['c'].properties)
+        return contents

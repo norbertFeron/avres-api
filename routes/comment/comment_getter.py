@@ -26,3 +26,16 @@ class GetAllComments(Resource):
         for record in result:
             comments.append(record['find'].properties)
         return comments
+
+
+class GetAllCommentsByAuthor(Resource):
+    def get(self, author_id):
+        req = "MATCH (author:user {uid: %d})-[:authorship]->(c:comment) RETURN c" % author_id
+        args = parser.parse_args()
+        if args['limit']:
+            req += " LIMIT %s" % args['limit']
+        result = neo4j.query_neo4j(req)
+        comments = []
+        for record in result:
+            comments.append(record['c'].properties)
+        return comments
