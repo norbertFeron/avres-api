@@ -3,7 +3,6 @@ from neo4j.v1 import ResultError
 from connector import neo4j
 
 parser = reqparse.RequestParser()
-parser.add_argument('drawing')
 parser.add_argument('limit')
 
 
@@ -49,3 +48,23 @@ class GetAllContentsByType(Resource):
         for record in result:
             contents.append(record['find'].properties)
         return contents
+
+
+class CountAllContent(Resource):
+    def get(self):
+        req = "MATCH (:content) RETURN count(*) AS nb_contents"
+        result = neo4j.query_neo4j(req)
+        try:
+            return result.single()['nb_contents'], 200
+        except ResultError:
+            return "ERROR", 500
+
+
+class CountContentByAuthor(Resource):
+    def get(self, user_id):
+        req = "MATCH (author:user {uid : %d})-[:authorship]->(:content) RETURN count(*) AS nb_contents" % user_id
+        result = neo4j.query_neo4j(req)
+        try:
+            return result.single()['nb_contents'], 200
+        except ResultError:
+            return "ERROR", 500

@@ -3,7 +3,6 @@ from neo4j.v1 import ResultError
 from connector import neo4j
 
 parser = reqparse.RequestParser()
-parser.add_argument('drawing')
 parser.add_argument('limit')
 
 

@@ -3,7 +3,6 @@ from neo4j.v1 import ResultError
 from connector import neo4j
 
 parser = reqparse.RequestParser()
-parser.add_argument('drawing')
 parser.add_argument('limit')
 
 
@@ -38,14 +37,21 @@ class GetAllComments(Resource):
         return comments
 
 
-class GetAllCommentsBetweenUsers(Resource):
-    def get(self, user1, user2):
-        req = ""
-        args = parser.parse_args()
-        if args['limit']:
-            req = req + " LIMIT %s" % args['limit']
+class CountAllComments(Resource):
+    def get(self):
+        req = "MATCH (:comment) RETURN count(*) AS nb_comments"
         result = neo4j.query_neo4j(req)
-        comments = []
-        for record in result:
-            comments.append(record['find'].properties)
-        return comments
+        try:
+            return result.single()['nb_comments'], 200
+        except ResultError:
+            return "ERROR", 500
+
+
+class CountCommentsByAuthor(Resource):
+    def get(self, user_id):
+        req = "MATCH (author:user {uid : %d})-[:authorship]->(:comment) RETURN count(*) AS nb_comments" % user_id
+        result = neo4j.query_neo4j(req)
+        try:
+            return result.single()['nb_comments'], 200
+        except ResultError:
+            return "ERROR", 500
