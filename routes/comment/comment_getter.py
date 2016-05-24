@@ -4,7 +4,7 @@ from connector import neo4j
 from routes.utils import addargs
 
 
-class GetCommentById(Resource):
+class GetComment(Resource):
     def get(self, comment_id):
         result = neo4j.query_neo4j("MATCH (find:comment {cid: %d}) RETURN find" % comment_id)
         try:
@@ -35,11 +35,21 @@ class GetAllCommentsByAuthor(Resource):
         return comments
 
 
-class GetAllCommentsByContent(Resource):
+class GetAllCommentsOnContent(Resource):
     def get(self, content_id):
         req = "MATCH (c:comment)-[:comments]->(content:content { nid: %d}) RETURN c" % content_id # todo restructure maybe change nid
         req += addargs()
-        print(req)
+        result = neo4j.query_neo4j(req)
+        comments = []
+        for record in result:
+            comments.append(record['c'].properties)
+        return comments
+
+
+class GetAllCommentsOnComment(Resource):
+    def get(self, comment_id):
+        req = "MATCH (c:comment)-[:comments]->(comment:comment { cid: %d}) RETURN c" % comment_id
+        req += addargs()
         result = neo4j.query_neo4j(req)
         comments = []
         for record in result:
