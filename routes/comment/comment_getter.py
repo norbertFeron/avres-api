@@ -27,7 +27,19 @@ class GetAllComments(Resource):
 class GetAllCommentsByAuthor(Resource):
     def get(self, author_id):
         req = "MATCH (author:user {uid: %d})-[:authorship]->(c:comment) RETURN c" % author_id
-        req += arglimit()
+        req += addargs()
+        result = neo4j.query_neo4j(req)
+        comments = []
+        for record in result:
+            comments.append(record['c'].properties)
+        return comments
+
+
+class GetAllCommentsByContent(Resource):
+    def get(self, content_id):
+        req = "MATCH (c:comment)-[:comments]->(content:content { nid: %d}) RETURN c" % content_id # todo restructure maybe change nid
+        req += addargs()
+        print(req)
         result = neo4j.query_neo4j(req)
         comments = []
         for record in result:
