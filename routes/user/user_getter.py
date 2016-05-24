@@ -8,7 +8,7 @@ parser.add_argument('limit')
 
 class GetUserById(Resource):
     def get(self, user_id):
-        result = neo4j.uery_neo4j("MATCH (find:user {uid: %d}) RETURN find" % user_id)
+        result = neo4j.query_neo4j("MATCH (find:user {uid: %d}) RETURN find" % user_id)
         try:
             return result.single()['find'].properties, 200
         except ResultError:
@@ -29,7 +29,7 @@ class GetAllUsers(Resource):
         req = "MATCH (find:user) RETURN find"
         args = parser.parse_args()
         if args['limit']:
-            req = req + " LIMIT %s" % args['limit']
+            req += " LIMIT %s" % args['limit']
         result = neo4j.query_neo4j(req)
         users = []
         for record in result:
