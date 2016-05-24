@@ -1,9 +1,9 @@
 from flask_restful import Resource, reqparse
 from neo4j.v1 import ResultError
 from connector import neo4j
+from routes.utils import arglimit
 
 parser = reqparse.RequestParser()
-parser.add_argument('limit')
 
 
 class GetContentById(Resource):
@@ -18,9 +18,7 @@ class GetContentById(Resource):
 class GetAllContents(Resource):
     def get(self):
         req = "MATCH (find:content) RETURN find"
-        args = parser.parse_args()
-        if args['limit']:
-            req += " LIMIT %s" % args['limit']
+        req += arglimit()
         result = neo4j.query_neo4j(req)
         contents = []
         for record in result:
@@ -31,9 +29,7 @@ class GetAllContents(Resource):
 class GetAllContentsByType(Resource):
     def get(self, content_type):
         req = "MATCH (find:content {type: '%s'}) RETURN find" % content_type
-        args = parser.parse_args()
-        if args['limit']:
-            req += " LIMIT %s" % args['limit']
+        req += arglimit()
         result = neo4j.query_neo4j(req)
         contents = []
         for record in result:
@@ -44,9 +40,7 @@ class GetAllContentsByType(Resource):
 class GetAllContentsByAuthor(Resource):
     def get(self, author_id):
         req = "MATCH (author:user {uid: %d})-[:authorship]->(c:content) RETURN c" % author_id
-        args = parser.parse_args()
-        if args['limit']:
-            req += " LIMIT %s" % args['limit']
+        req += arglimit()
         result = neo4j.query_neo4j(req)
         contents = []
         for record in result:
