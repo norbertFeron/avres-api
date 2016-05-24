@@ -13,7 +13,7 @@ class GetComment(Resource):
             return "ERROR : Cannot find comment with cid: %d" % comment_id, 200
 
 
-class GetAllComments(Resource):
+class GetComments(Resource):
     def get(self):
         req = "MATCH (find:comment) RETURN find"
         req += addargs()
@@ -24,7 +24,7 @@ class GetAllComments(Resource):
         return comments
 
 
-class GetAllCommentsByAuthor(Resource):
+class GetCommentsByAuthor(Resource):
     def get(self, author_id):
         req = "MATCH (author:user {uid: %d})-[:authorship]->(c:comment) RETURN c" % author_id
         req += addargs()
@@ -35,7 +35,7 @@ class GetAllCommentsByAuthor(Resource):
         return comments
 
 
-class GetAllCommentsOnContent(Resource):
+class GetCommentsOnContent(Resource):
     def get(self, content_id):
         req = "MATCH (c:comment)-[:comments]->(content:content { nid: %d}) RETURN c" % content_id # todo restructure maybe change nid
         req += addargs()
@@ -46,7 +46,7 @@ class GetAllCommentsOnContent(Resource):
         return comments
 
 
-class GetAllCommentsOnComment(Resource):
+class GetCommentsOnComment(Resource):
     def get(self, comment_id):
         req = "MATCH (c:comment)-[:comments]->(comment:comment { cid: %d}) RETURN c" % comment_id
         req += addargs()

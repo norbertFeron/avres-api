@@ -16,8 +16,8 @@ class CountAllComments(Resource):
 
 
 class CountCommentsByAuthor(Resource):
-    def get(self, user_id):
-        req = "MATCH (author:user {uid : %d})-[:authorship]->(:comment) RETURN count(*) AS nb_comments" % user_id
+    def get(self, author_id):
+        req = "MATCH (author:user {uid : %d})-[:authorship]->(:comment) RETURN count(*) AS nb_comments" % author_id
         result = neo4j.query_neo4j(req)
         try:
             return result.single()['nb_comments'], 200

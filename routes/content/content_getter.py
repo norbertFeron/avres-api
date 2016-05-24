@@ -13,7 +13,7 @@ class GetContentById(Resource):
             return "ERROR : Cannot find content with nid: %d" % content_id, 200
 
 
-class GetAllContents(Resource):
+class GetContents(Resource):
     def get(self):
         req = "MATCH (find:content) RETURN find"
         req += addargs()
@@ -24,7 +24,7 @@ class GetAllContents(Resource):
         return contents
 
 
-class GetAllContentsByType(Resource):
+class GetContentsByType(Resource):
     def get(self, content_type):
         req = "MATCH (find:content {type: '%s'}) RETURN find" % content_type
         req += addargs()
@@ -35,7 +35,7 @@ class GetAllContentsByType(Resource):
         return contents
 
 
-class GetAllContentsByAuthor(Resource):
+class GetContentsByAuthor(Resource):
     def get(self, author_id):
         req = "MATCH (author:user {uid: %d})-[:authorship]->(c:content) RETURN c" % author_id
         req += addargs()

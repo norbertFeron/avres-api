@@ -13,7 +13,7 @@ class GetUserById(Resource):
             return "ERROR : Cannot find user with uid: %d" % user_id, 200  # todo create error code
 
 
-class GetAllUsers(Resource):
+class GetUsers(Resource):
     def get(self):
         req = "MATCH (find:user) RETURN find"
         req += addargs()
