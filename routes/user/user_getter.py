@@ -4,13 +4,29 @@ from connector import neo4j
 from routes.utils import addargs
 
 
-class GetUserById(Resource):
+class GetUser(Resource):
     def get(self, user_id):
         result = neo4j.query_neo4j("MATCH (find:user {uid: %d}) RETURN find" % user_id)
         try:
             return result.single()['find'].properties, 200
         except ResultError:
             return "ERROR : Cannot find user with uid: %d" % user_id, 200  # todo create error code
+
+
+class GetUserHydrate(Resource):
+    def get(self, user_id):
+        result = neo4j.query_neo4j("MATCH (find:user {uid: %d})--(n) RETURN find, n" % user_id)
+        contents = []
+        comments = []
+        for record in result:
+            user = record['find'].properties
+            if 'content' in record['n'].labels:
+                contents.append(record['n'].properties)
+            if 'comment' in record['n'].labels:
+                comments.append(record['n'].properties)
+        user['contents'] = contents
+        user['comments'] = comments
+        return user, 200
 
 
 class GetUsers(Resource):
