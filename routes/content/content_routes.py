@@ -10,8 +10,11 @@ def add_content_routes(api):
     api.add_resource(GetAllContentsByAuthor, '/contents/author/<int:author_id>')
     # Single
     api.add_resource(GetContentById, '/content/id/<int:content_id>')
+    # Distinct
+    api.add_resource(GetContentType, '/content/getType/')
+
     # Count
     api.add_resource(CountAllContent, '/contents/count/')
     api.add_resource(CountContentByAuthor, '/contents/count/author/<int:author_id>')
 
-# todo GetAllType
+

@@ -12,7 +12,7 @@ class GetContentById(Resource):
         try:
             return result.single()['find'].properties, 200
         except ResultError:
-            return "ERROR : Cannot find content with nid: %d" % content_id, 200  # todo create error code
+            return "ERROR : Cannot find content with nid: %d" % content_id, 200
 
 
 class GetAllContents(Resource):
@@ -52,3 +52,13 @@ class GetAllContentsByAuthor(Resource):
         for record in result:
             contents.append(record['c'].properties)
         return contents
+
+
+class GetContentType(Resource):
+    def get(self):
+        req = "MATCH (c:content) WHERE EXISTS(c.type) RETURN DISTINCT c.type AS type"
+        result = neo4j.query_neo4j(req)
+        types = []
+        for record in result:
+            types.append(record['type'])
+        return types

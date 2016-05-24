@@ -12,7 +12,7 @@ class GetCommentById(Resource):
         try:
             return result.single()['find'].properties, 200
         except ResultError:
-            return "ERROR : Cannot find comment with cid: %d" % comment_id, 200  # todo create error code
+            return "ERROR : Cannot find comment with cid: %d" % comment_id, 200
 
 
 class GetAllComments(Resource):
