@@ -15,15 +15,6 @@ class GetUserById(Resource):
             return "ERROR : Cannot find user with uid: %d" % user_id, 200  # todo create error code
 
 
-class GetUserByName(Resource):
-    def get(self, user_name):
-        result = neo4j.query_neo4j("MATCH (find:user {name: '%s'}) RETURN find" % user_name)
-        try:
-            return result.single()['find'].properties, 200
-        except ResultError:
-            return "ERROR : Cannot find user with name: %d" % user_name, 200
-
-
 class GetAllUsers(Resource):
     def get(self):
         req = "MATCH (find:user) RETURN find"
