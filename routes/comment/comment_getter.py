@@ -1,10 +1,7 @@
-from flask_restful import Resource, reqparse
+from flask_restful import Resource
 from neo4j.v1 import ResultError
 from connector import neo4j
-from routes.utils import arglimit
-
-parser = reqparse.RequestParser()
-parser.add_argument('limit')
+from routes.utils import addargs
 
 
 class GetCommentById(Resource):
@@ -19,7 +16,7 @@ class GetCommentById(Resource):
 class GetAllComments(Resource):
     def get(self):
         req = "MATCH (find:comment) RETURN find"
-        req += arglimit()
+        req += addargs()
         result = neo4j.query_neo4j(req)
         comments = []
         for record in result:

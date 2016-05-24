@@ -1,10 +1,7 @@
-from flask_restful import Resource, reqparse
+from flask_restful import Resource
 from neo4j.v1 import ResultError
 from connector import neo4j
-from routes.utils import arglimit
-
-parser = reqparse.RequestParser()
-parser.add_argument('orderBy')
+from routes.utils import addargs
 
 
 class GetUserById(Resource):
@@ -19,10 +16,7 @@ class GetUserById(Resource):
 class GetAllUsers(Resource):
     def get(self):
         req = "MATCH (find:user) RETURN find"
-        args = parser.parse_args()
-        if args['orderBy']:
-            req += " ORDER BY find.%s" % args['orderBy']
-        req += arglimit()
+        req += addargs()
         result = neo4j.query_neo4j(req)
         users = []
         for record in result:
