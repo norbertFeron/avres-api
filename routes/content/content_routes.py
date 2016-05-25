@@ -10,6 +10,7 @@ def add_content_routes(api):
     api.add_resource(GetContentsByAuthor, '/contents/author/<int:author_id>')
     # Single
     api.add_resource(GetContent, '/content/<int:content_id>')
+    api.add_resource(GetContentHydrate, '/content/hydrate/<int:content_id>')
     # Distinct
     api.add_resource(GetContentType, '/content/getType/')
 

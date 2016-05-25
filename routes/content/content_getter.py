@@ -13,6 +13,27 @@ class GetContent(Resource):
             return "ERROR : Cannot find content with nid: %d" % content_id, 200
 
 
+class GetContentHydrate(Resource):
+    def get(self, content_id):
+        req = "MATCH (find:content {nid: %d})<-[:authorship]-(author:user)" % content_id
+        req += "MATCH (find)<-[:comments]-(comment:comment)<-[:authorship]-(commentAuthor:user)"
+        req += "RETURN find, author, comment, commentAuthor"
+        result = neo4j.query_neo4j(req)
+        comments = []
+        for record in result:
+            user = record['find'].properties
+            if record['author']:
+                author = record['author'].properties
+            if record['comment']:
+                comment = record['comment'].properties
+                if record['commentAuthor']:
+                    comment['author'] = record['commentAuthor'].properties
+                comments.append(comment)
+        user['comments'] = comments
+        user['author'] = author
+        return user, 200
+
+
 class GetContents(Resource):
     def get(self):
         req = "MATCH (find:content) RETURN find"
