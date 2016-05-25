@@ -8,7 +8,7 @@ cp config.example.ini config.ini
 nano config.ini
 ```
 
-### localy
+### locally
 2. install requirements
 ```
 pip install -r requirements.txt
