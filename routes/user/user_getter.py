@@ -6,16 +6,18 @@ from routes.utils import addargs
 
 class GetUser(Resource):
     def get(self, user_id):
-        result = neo4j.query_neo4j("MATCH (find:user {uid: %d}) RETURN find" % user_id)
+        req = "MATCH (find:user {uid: %d}) RETURN find" % user_id
+        result = neo4j.query_neo4j(req)
         try:
             return result.single()['find'].properties, 200
         except ResultError:
             return "ERROR : Cannot find user with uid: %d" % user_id, 200  # todo create error code
 
 
-class GetUserHydrate(Resource):
+class GetUserHydrate(Resource): # todo push hydrate with comments on contents, comments on comments and author of the comment
     def get(self, user_id):
-        result = neo4j.query_neo4j("MATCH (find:user {uid: %d})--(n) RETURN find, n" % user_id)
+        req = "MATCH (find:user {uid: %d})--(n) RETURN find, n" % user_id
+        result = neo4j.query_neo4j(req)
         contents = []
         comments = []
         for record in result:

@@ -6,7 +6,8 @@ from routes.utils import addargs
 
 class GetComment(Resource):
     def get(self, comment_id):
-        result = neo4j.query_neo4j("MATCH (find:comment {cid: %d}) RETURN find" % comment_id)
+        req = "MATCH (find:comment {cid: %d}) RETURN find" % comment_id
+        result = neo4j.query_neo4j(req)
         try:
             return result.single()['find'].properties, 200
         except ResultError:
