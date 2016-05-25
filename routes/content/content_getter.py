@@ -4,7 +4,7 @@ from connector import neo4j
 from routes.utils import addargs
 
 
-class GetContentById(Resource):
+class GetContent(Resource):
     def get(self, content_id):
         result = neo4j.query_neo4j("MATCH (find:content {nid: %d}) RETURN find" % content_id)
         try:
