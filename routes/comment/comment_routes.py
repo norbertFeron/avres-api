@@ -11,6 +11,7 @@ def add_comment_routes(api):
     api.add_resource(GetCommentsOnComment, '/comments/comment/<int:comment_id>')
     # Simple
     api.add_resource(GetComment, '/comment/<int:comment_id>')
+    api.add_resource(GetCommentHydrate, '/comment/hydrate/<int:comment_id>')
 
     # Count
     api.add_resource(CountAllComments, '/comments/count/')

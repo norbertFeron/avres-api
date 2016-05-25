@@ -13,6 +13,20 @@ class GetComment(Resource):
             return "ERROR : Cannot find comment with cid: %d" % comment_id, 200
 
 
+class GetCommentHydrate(Resource):
+    def get(self, comment_id):
+        req = "MATCH (find:comment {cid: %d})<-[:authorship]-(author:user)" % comment_id
+        req += "RETURN find, author"
+        result = neo4j.query_neo4j(req)
+        try:
+            record = result.single()
+            comment = record['find'].properties
+            comment['author'] = record['author'].properties
+            return comment, 200
+        except ResultError:
+            return "ERROR : Cannot find comment with cid: %d" % comment_id, 200
+
+
 class GetComments(Resource):
     def get(self):
         req = "MATCH (find:comment) RETURN find"
