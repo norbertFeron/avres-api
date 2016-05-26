@@ -8,6 +8,7 @@ from connector.neo4j import query_neo4j
 config = configparser.ConfigParser()
 config.read("config.ini")
 
+
 class ImportFromJson(object):
     def __init__(self):
         super(ImportFromJson, self).__init__()
@@ -15,7 +16,6 @@ class ImportFromJson(object):
         self.neo4j_graph = Graph(host=config['neo4j']['url'], user=config['neo4j']['user'], password=config['neo4j']['password'])
         # self.neo4j_graph.delete_all() # todo remove
         # todo ask neo4j for is data version aka last_uid last_pid last_cid
-
 
     def create_users(self):
         query_neo4j("CREATE CONSTRAINT ON (n:user) ASSERT n.uid IS UNIQUE")
@@ -63,16 +63,23 @@ class ImportFromJson(object):
 
             # Add relation
             if user_fields['Language']:
-                query_neo4j("MATCH (u:user { uid : %d }) MERGE (l:language { name : '%s'}) CREATE UNIQUE (u)-[:SPEAK]->(l)" % (user_node['uid'], user_fields['Language']))
+                req = "MATCH (u:user { uid : %d })" % user_node['uid']
+                req += "MERGE (l:language { name : '%s'})" % user_fields['Language']
+                req += "CREATE UNIQUE (u)-[:SPEAK]->(l)"
+                query_neo4j(req)
             if user_fields['Roles']:
                 for role in user_fields['Roles'].split(','):
-                    query_neo4j("MATCH (u:user { uid : %d }) MERGE (r:role { name : '%s'}) CREATE UNIQUE (u)-[:HIS]->(r)" % (user_node['uid'], role))
+                    req = "MATCH (u:user { uid : %d }) " % user_node['uid']
+                    req += "MERGE (r:role { name : '%s'}) " %role
+                    req += "CREATE UNIQUE (u)-[:HIS]->(r)"
+                    query_neo4j(req)
 
             # TimeTree
             if user_fields['Created_date']:
-                timestamp = time.mktime(datetime.strptime(user_fields['Created_date'], "%A, %B %d, %Y - %H:%M").timetuple())
+                timestamp = int(time.mktime(datetime.strptime(user_fields['Created_date'], "%A, %B %d, %Y - %H:%M").timetuple())* 1000)
                 req = "MATCH (u:user { uid : %d }) WITH u " % user_node['uid']
-                req += "CALL ga.timetree.events.attach({node: u, time: %s, relationshipType: 'created_on'}) YIELD node RETURN u" % int(timestamp * 1000)
+                req += "CALL ga.timetree.events.attach({node: u, time: %s, relationshipType: 'created_on'}) " % timestamp
+                req += "YIELD node RETURN u"
                 query_neo4j(req)
 
     def create_posts(self):
