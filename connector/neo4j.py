@@ -17,3 +17,7 @@ def query_neo4j(request):
     session.close()
     return result
 
+
+def create_node(node):
+    req = "CREATE"
+
