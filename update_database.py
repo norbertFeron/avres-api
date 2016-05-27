@@ -5,3 +5,4 @@ if __name__ == '__main__':
     importer.create_users()
     importer.create_posts()
     importer.create_comments()
+    importer.end_import()

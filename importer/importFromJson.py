@@ -15,8 +15,11 @@ class ImportFromJson(object):
         super(ImportFromJson, self).__init__()
         print('Initializing')
         self.neo4j_graph = Graph(host=config['neo4j']['url'], user=config['neo4j']['user'], password=config['neo4j']['password'])
-        # self.neo4j_graph.delete_all() # todo remove
-        # todo ask neo4j for is data version aka last_uid last_pid last_cid
+        # self.neo4j_graph.delete_all()
+        # todo ask neo4j for is data version (last_uid last_pid last_cid)
+        self.unavailable_users_id = []
+        self.unavailable_posts_id = []
+        self.unavailable_comments_id = []
 
     def create_users(self):
         query_neo4j("CREATE CONSTRAINT ON (n:user) ASSERT n.uid IS UNIQUE")
@@ -49,7 +52,7 @@ class ImportFromJson(object):
             if user_fields['Last_Name']:
                 user_node['last_name'] = user_fields['Last_Name']
             if user_fields['Group_membership']:
-                user_node['group_member'] = user_fields['Group_membership'] # not well struture to be relation
+                user_node['group_member'] = user_fields['Group_membership'] # not well structure to be relation
             if user_fields['How_did_you_hear_about_Edgeryders?']:
                 user_node['hear_about_edgeryders'] = user_fields['How_did_you_hear_about_Edgeryders?']
             if user_fields['LinkedIn_URL']:
@@ -119,15 +122,14 @@ class ImportFromJson(object):
 
             # Author
             if post_fields['Author uid']:
-                result = query_neo4j("MATCH (u:user { uid : %s }) RETURN u" % post_fields['Author uid'])
                 try :
-                    record = result.single()
                     req = "MATCH (p:post { pid : %d })" % post_node['pid']
                     req += " MATCH (u:user { uid : %s })" % post_fields['Author uid']
-                    req += " CREATE UNIQUE (u)-[:AUTHORSHIP]->(p)"
-                    query_neo4j(req)
+                    req += " CREATE UNIQUE (u)-[:AUTHORSHIP]->(p) RETURN u"
+                    query_neo4j(req).single()
                 except ResultError:
-                    print("post pid : %d as no author uid : %s" % (post_node['pid'], post_fields['Author uid']))
+                    print("WARNING : post pid : %d as no author uid : %s" % (post_node['pid'], post_fields['Author uid']))
+                    self.unavailable_users_id.append(post_fields['Author uid'])
 
             # TimeTree
             if post_fields['Post date']:
@@ -137,9 +139,6 @@ class ImportFromJson(object):
                 req += "CALL ga.timetree.events.attach({node: p, time: %s, relationshipType: 'POST_ON'}) " % timestamp
                 req += "YIELD node RETURN p"
                 query_neo4j(req)
-
-
-
 
     def create_comments(self):
         query_neo4j("CREATE CONSTRAINT ON (c:comment) ASSERT c.cid IS UNIQUE")
@@ -167,25 +166,25 @@ class ImportFromJson(object):
             if comment_fields['Author uid']:
                 result = query_neo4j("MATCH (u:user { uid : %s }) RETURN u" % comment_fields['Author uid'])
                 try:
-                    record = result.single()
                     req = "MATCH (c:comment { cid : %d }) " % comment_node['cid']
                     req += "MATCH (u:user { uid : %s }) " % comment_fields['Author uid']
-                    req += "CREATE UNIQUE (u)-[:AUTHORSHIP]->(c)"
-                    query_neo4j(req)
+                    req += "CREATE UNIQUE (u)-[:AUTHORSHIP]->(c) RETURN u"
+                    query_neo4j(req).single()
                 except ResultError:
-                    print("comment cid : %d as no author uid : %s" % (comment_node['cid'], comment_fields['Author uid']))
-
+                    print("WARNING : comment cid : %d as no author uid : %s" % (comment_node['cid'], comment_fields['Author uid']))
+                    if comment_fields['Author uid'] not in self.unavailable_users_id:
+                        self.unavailable_users_id.append(comment_fields['Author uid'])
             # ParentPost
             if comment_fields['Nid']:
-                result = query_neo4j("MATCH (p:post { pid : %s }) RETURN p" % comment_fields['Nid'].replace(",",""))
                 try:
-                    record = result.single()
                     req = "MATCH (c:comment { cid : %d }) " % comment_node['cid']
-                    req += "MATCH (p:post { pid : %s }) " % comment_fields['Nid'].replace(",","")
-                    req += "CREATE UNIQUE (c)-[:COMMENTS]->(p)"
-                    query_neo4j(req)
+                    req += "MATCH (p:post { pid : %s }) " % comment_fields['Nid'].replace(",", "")
+                    req += "CREATE UNIQUE (c)-[:COMMENTS]->(p) RETURN p"
+                    query_neo4j(req).single()
                 except ResultError:
-                    print("comment cid : %d as no post parent pid : %s" % (comment_node['cid'], comment_fields['Nid'].replace(",","")))
+                    print("WARNING : comment cid : %d as no post parent pid : %s" % (comment_node['cid'], comment_fields['Nid'].replace(",", "")))
+                    if comment_fields['Nid'] not in self.unavailable_posts_id:
+                        self.unavailable_posts_id.append(comment_fields['Nid'])
 
             # TimeTree
             if comment_fields['Post date']:
@@ -195,19 +194,26 @@ class ImportFromJson(object):
                 req += "YIELD node RETURN c"
                 query_neo4j(req)
 
+        # ParentComment
         for comment_entry in json_comments['nodes']:
             comment_node = Node('comment')
             comment_fields = comment_entry['node']
             comment_node['cid'] = int(comment_fields['ID'])
-            # ParentComment
             if comment_fields['Parent CID']:
-                result = query_neo4j("MATCH (p:post { pid : %s }) RETURN p" % comment_fields['Nid'].replace(",", ""))
                 try:
-                    record = result.single()
                     req = "MATCH (c:comment { cid : %d }) " % comment_node['cid']
                     req += "MATCH (parent:comment { cid : %d }) " % int(comment_fields['Parent CID'])
-                    req += "CREATE UNIQUE (c)-[:COMMENTS]->(parent)"
-                    query_neo4j(req)
+                    req += "CREATE UNIQUE (c)-[:COMMENTS]->(parent) RETURN parent"
+                    query_neo4j(req).single()
                 except ResultError:
-                    print("comment cid : %d as no comment parent pid : %s" % (comment_node['cid'], comment_fields['Parent CID']))
+                    print("WARNING : comment cid : %d as no comment parent pid : %s" % (comment_node['cid'], comment_fields['Parent CID']))
+                    if comment_fields['Parent CID'] not in self.unavailable_comments_id:
+                        self.unavailable_comments_id.append(comment_fields['Parent CID'])
 
+    def end_import(self):
+        print("Unavailable users :")
+        print(self.unavailable_users_id)
+        print("Unavailable posts :")
+        print(self.unavailable_posts_id)
+        print("Unavailable comments :")
+        print(self.unavailable_comments_id)
