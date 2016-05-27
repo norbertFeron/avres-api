@@ -158,7 +158,7 @@ class ImportFromJson(object):
 
             # Add relation
             # Language
-            if comment_fields['Language']:
+            if comment_fields['Language']: # todo repare
                 req = "MATCH (c:comment { cid : %d })" % comment_node['cid']
                 req += " MERGE (l:language { name : '%s'})" % comment_fields['Language']
                 req += " CREATE UNIQUE (u)-[:WRITE_IN]->(l)"
@@ -201,7 +201,7 @@ class ImportFromJson(object):
             comment_node = Node('comment')
             comment_fields = comment_entry['node']
             comment_node['cid'] = int(comment_fields['ID'])
-            if comment_fields['Parent CID']:
+            if comment_fields['Parent CID'] and comment_fields['Parent CID'] != 0:
                 try:
                     req = "MATCH (c:comment { cid : %d }) " % comment_node['cid']
                     req += "MATCH (parent:comment { cid : %d }) " % int(comment_fields['Parent CID'])

@@ -7,7 +7,7 @@ def add_comment_routes(api):
     # Multiple
     api.add_resource(GetComments, '/comments')
     api.add_resource(GetCommentsByAuthor, '/comments/author/<int:author_id>')
-    api.add_resource(GetCommentsOnContent, '/comments/content/<int:content_id>')
+    api.add_resource(GetCommentsOnPost, '/comments/post/<int:post_id>')
     api.add_resource(GetCommentsOnComment, '/comments/comment/<int:comment_id>')
     # Simple
     api.add_resource(GetComment, '/comment/<int:comment_id>')

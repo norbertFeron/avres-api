@@ -16,16 +16,40 @@ class GetComment(Resource):
 
 class GetCommentHydrate(Resource):
     def get(self, comment_id):
-        req = "MATCH (find:comment {cid: %d})<-[:authorship]-(author:user)" % comment_id
-        req += "RETURN find, author"
+        req = "MATCH (find:comment {cid: %d}) " % comment_id
+        req += "OPTIONAL MATCH (find)<-[:AUTHORSHIP]-(author:user) "
+        req += "OPTIONAL MATCH (find)<-[:COMMENTS]-(otherComment:comment) "
+        req += "OPTIONAL MATCH (otherComment)<-[:AUTHORSHIP]-(otherCommentAuthor:user) "
+        req += "RETURN find, author, otherComment, otherCommentAuthor"
         result = neo4j.query_neo4j(req)
-        try:
-            record = result.single()
+        comments = []
+        author = None
+        other_comment = None
+        for record in result:
             comment = record['find'].properties
-            comment['author'] = record['author'].properties
-            return comment, 200
-        except ResultError:
-            return "ERROR : Cannot find comment with cid: %d" % comment_id, 200
+            try:
+                if record['author']:
+                    author = record['author'].properties
+            except KeyError:
+                pass
+            try:
+                if record['otherComment']:
+                    other_comment = record['otherComment'].properties
+                    try:
+                        if record['otherCommentAuthor']:
+                            other_comment['author'] = record['otherCommentAuthor'].properties
+                    except KeyError:
+                        pass
+                    comments.append(other_comment)
+            except KeyError:
+                pass
+        try:
+            comment
+        except NameError:
+            return "ERROR : Cannot find post with pid: %d" % comment_id, 200
+        comment['comments'] = comments
+        comment['author'] = author
+        return comment, 200
 
 
 class GetComments(Resource):
@@ -41,7 +65,7 @@ class GetComments(Resource):
 
 class GetCommentsByAuthor(Resource):
     def get(self, author_id):
-        req = "MATCH (author:user {uid: %d})-[:authorship]->(c:comment) RETURN c" % author_id
+        req = "MATCH (author:user {uid: %d})-[:AUTHORSHIP]->(c:comment) RETURN c" % author_id
         req += addargs()
         result = neo4j.query_neo4j(req)
         comments = []
@@ -50,9 +74,9 @@ class GetCommentsByAuthor(Resource):
         return comments
 
 
-class GetCommentsOnContent(Resource):
-    def get(self, content_id):
-        req = "MATCH (c:comment)-[:comments]->(content:content { nid: %d}) RETURN c" % content_id # todo restructure maybe change nid
+class GetCommentsOnPost(Resource):
+    def get(self, post_id):
+        req = "MATCH (c:comment)-[:COMMENTS]->(post:post { nid: %d}) RETURN c" % post_id # todo restructure maybe change nid
         req += addargs()
         result = neo4j.query_neo4j(req)
         comments = []
@@ -63,7 +87,7 @@ class GetCommentsOnContent(Resource):
 
 class GetCommentsOnComment(Resource):
     def get(self, comment_id):
-        req = "MATCH (c:comment)-[:comments]->(comment:comment { cid: %d}) RETURN c" % comment_id
+        req = "MATCH (c:comment)-[:COMMENTS]->(comment:comment { cid: %d}) RETURN c" % comment_id
         req += addargs()
         result = neo4j.query_neo4j(req)
         comments = []

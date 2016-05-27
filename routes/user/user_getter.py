@@ -14,19 +14,29 @@ class GetUser(Resource):
             return "ERROR : Cannot find user with uid: %d" % user_id, 200  # todo create error code
 
 
-class GetUserHydrate(Resource): # todo push hydrate with comments on contents, comments on comments and author of the comment
+class GetUserHydrate(Resource):
     def get(self, user_id):
-        req = "MATCH (find:user {uid: %d})--(n) RETURN find, n" % user_id
+        req = "MATCH (find:user {uid: %d})" % user_id
+        req += "OPTIONAL MATCH (find)-[:AUTHORSHIP]->(p:post)"
+        req += "OPTIONAL MATCH (find)-[:AUTHORSHIP]->(c:comment)"
+        req += "RETURN find, p, c"
         result = neo4j.query_neo4j(req)
-        contents = []
+        posts = []
         comments = []
         for record in result:
             user = record['find'].properties
-            if 'content' in record['n'].labels:
-                contents.append(record['n'].properties)
-            if 'comment' in record['n'].labels:
-                comments.append(record['n'].properties)
-        user['contents'] = contents
+            try:
+                if record['p']:
+                    posts.append(record['p'].properties)
+                if record['c']:
+                    comments.append(record['c'].properties)
+            except KeyError:
+                pass
+        try:
+            user
+        except NameError:
+            return "ERROR : Cannot find post with pid: %d" % user_id, 200
+        user['posts'] = posts
         user['comments'] = comments
         return user, 200
 

@@ -1,5 +1,5 @@
 # Graph Rider Api
-This is a simple Rest full Api to interact with neo4j database and query opencare users, contents and comments
+This is a simple Rest full Api to interact with neo4j database and query opencare users, posts and comments
 
 ## How to
 1. change config file
