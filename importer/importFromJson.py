@@ -11,12 +11,14 @@ config.read("config.ini")
 
 
 class ImportFromJson(object):
-    def __init__(self):
+    def __init__(self, erase=False):
         super(ImportFromJson, self).__init__()
         print('Initializing')
         self.neo4j_graph = Graph(host=config['neo4j']['url'], user=config['neo4j']['user'], password=config['neo4j']['password'])
-        # self.neo4j_graph.delete_all()
-        # todo ask neo4j for is data version (last_uid last_pid last_cid)
+        if erase:
+            self.neo4j_graph.delete_all()
+        # else:
+            # todo ask neo4j for is data version (last_uid last_pid last_cid)
         self.unavailable_users_id = []
         self.unavailable_posts_id = []
         self.unavailable_comments_id = []
