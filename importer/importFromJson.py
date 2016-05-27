@@ -213,9 +213,12 @@ class ImportFromJson(object):
                         self.unavailable_comments_id.append(comment_fields['Parent CID'])
 
     def end_import(self):
-        print("Unavailable users :")
-        print(self.unavailable_users_id)
-        print("Unavailable posts :")
-        print(self.unavailable_posts_id)
-        print("Unavailable comments :")
-        print(self.unavailable_comments_id)
+        response = "\n Unavailable users :"
+        response += str(self.unavailable_users_id)
+        response += "\n Unavailable posts :"
+        response += str(self.unavailable_posts_id)
+        response += "\n Unavailable comments :"
+        response += str(self.unavailable_comments_id)
+        print(response)
+        return response
+
