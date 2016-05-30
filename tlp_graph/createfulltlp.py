@@ -7,13 +7,13 @@ config = configparser.ConfigParser()
 config.read("config.ini")
 
 
-class create_tlp(object):
+class CreateFullTlp(object):
     def __init__(self):
-        super(create_tlp, self).__init__()
+        super(CreateFullTlp, self).__init__()
         print('Initializing')
         self.neo4j_graph = Graph(host=config['neo4j']['url'], user=config['neo4j']['user'], password=config['neo4j']['password'])
 
-    def create_full(self):
+    def create(self):
         '''
         Builds a tulip version of the whole database
         '''
@@ -108,9 +108,10 @@ class create_tlp(object):
         print("Export the graph to %s" % config['exporter']['tlp_path'])
         tlp.saveGraph(tulip_graph, config['exporter']['tlp_path'])
 
-    def find_node_by_id(self, id, graph, type):
+    @staticmethod
+    def find_node_by_id(wanted_id, graph, type_id):
         for node in graph.getNodes():
-            if type.getNodeValue(node) == id:
+            if type_id.getNodeValue(node) == wanted_id:
                 return node
-        print("ERROR cannot finding node %s " % id)
+        print("ERROR cannot finding node %s " % wanted_id)
         return None

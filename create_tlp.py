@@ -1,6 +1,6 @@
-from tlp_graph.create_tlp import create_tlp
+from tlp_graph.createfulltlp import CreateFullTlp
 
 if __name__ == '__main__':
-    creator = create_tlp()
-    creator.create_full()
+    creator = CreateFullTlp()
+    creator.create()
     print("Tulip graph as been created from database")

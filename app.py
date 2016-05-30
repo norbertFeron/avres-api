@@ -6,7 +6,7 @@ from routes.comment.comment_routes import add_comment_routes
 from routes.post.post_routes import add_post_routes
 from routes.tulip_compute.tulip_routes import add_tulip_routes
 from update_database import Update, HardUpdate
-from tlp_graph.create_tlp import create_tlp
+from tlp_graph.createfulltlp import CreateFullTlp
 
 config = configparser.ConfigParser()
 config.read("config.ini")
