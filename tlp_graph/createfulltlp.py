@@ -53,7 +53,11 @@ class CreateFullTlp(object):
             size[n] = tlp.Size(1, 2, 1)
             pid[n] = post['pid']
             title[n] = post['title']
-            label[n] = post['title']
+            word = post['title'].split(' ')
+            if len(word) > 3:
+                label[n] = "%s %s %s ..." % (word[0], word[1], word[2])
+            else:
+                label[n] = post['title']
 
         print("Read Comments")
         for comment in self.neo4j_graph.find('comment'):
@@ -65,7 +69,11 @@ class CreateFullTlp(object):
             cid[n] = comment['cid']
             if comment['title']:
                 title[n] = comment['title']
-                label[n] = comment['title']
+                word = comment['title'].split(' ')
+                if len(word) > 3:
+                    label[n] = "%s %s %s ..." % (word[0], word[1], word[2])
+                else:
+                    label[n] = comment['title']
 
         print("Create AUTHORSHIP edges")
         for link in self.neo4j_graph.match(start_node=None, rel_type='AUTHORSHIP', end_node=None, bidirectional=False,
