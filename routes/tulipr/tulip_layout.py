@@ -17,8 +17,8 @@ class GetLayoutAlgorithm(Resource):
 
 class DrawCompleteGraph(Resource):
     def get(self, layout):
-        tulip_graph = tlp.loadGraph(config['exporter']['tlp_path'])
+        tulip_graph = tlp.loadGraph("%s%s.tlp" % (config['exporter']['tlp_path'], "complete"))
         tulip_graph.applyLayoutAlgorithm(layout)
-        path = "%s%s.json" % (config['exporter']['tlp_path'], "complete")
+        path = "%s%s.json" % (config['exporter']['json_path'], "complete")
         tlp.exportGraph("SIGMA JSON Export", tulip_graph, path)
         return send_file(path)
