@@ -115,11 +115,11 @@ class CreateFullTlp(object):
             element_type[e] = 'COMMENTS'
 
         # Apply forcedirected layout
-        tulip_graph.applyLayoutAlgorithm("Sugiyama (OGDF)")
+        tulip_graph.applyLayoutAlgorithm("FM^3 (OGDF)")
 
         print("Save the graph to %s" % config['exporter']['tlp_path'])
         tlp.saveGraph(tulip_graph, config['exporter']['tlp_path'])
-        path = "/Users/nferon/PycharmProjects/graph-ryder-api/Users_content_comments.json"
+        path = "/Users/nferon/PycharmProjects/graph-ryder-api/data/tmp/complete.json"
         tlp.exportGraph("SIGMA JSON Export", tulip_graph, path)
 
     @staticmethod
