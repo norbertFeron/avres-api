@@ -1,7 +1,8 @@
 from tulip import *
 import configparser
-from tulipplugins import *
 from py2neo import *
+# todo move exportsigma to a directory
+import exportsigma
 
 config = configparser.ConfigParser()
 config.read("config.ini")
@@ -113,8 +114,13 @@ class CreateFullTlp(object):
                 print("ERROR source or target is not define")
             element_type[e] = 'COMMENTS'
 
-        print("Export the graph to %s" % config['exporter']['tlp_path'])
+        # Apply forcedirected layout
+        tulip_graph.applyLayoutAlgorithm("Sugiyama (OGDF)")
+
+        print("Save the graph to %s" % config['exporter']['tlp_path'])
         tlp.saveGraph(tulip_graph, config['exporter']['tlp_path'])
+        path = "/Users/nferon/PycharmProjects/graph-ryder-api/Users_content_comments.json"
+        tlp.exportGraph("SIGMA JSON Export", tulip_graph, path)
 
     @staticmethod
     def find_node_by_id(wanted_id, graph, type_id):

@@ -1,4 +1,4 @@
-from tlp_graph.createfulltlp import CreateFullTlp
+from graphtulip.createfulltlp import CreateFullTlp
 
 if __name__ == '__main__':
     creator = CreateFullTlp()

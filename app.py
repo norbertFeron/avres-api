@@ -6,7 +6,6 @@ from routes.comment.comment_routes import add_comment_routes
 from routes.post.post_routes import add_post_routes
 from routes.tulip_compute.tulip_routes import add_tulip_routes
 from update_database import Update, HardUpdate
-from tlp_graph.createfulltlp import CreateFullTlp
 
 config = configparser.ConfigParser()
 config.read("config.ini")
@@ -22,9 +21,7 @@ add_tulip_routes(api)
 api.add_resource(Update, '/update')
 api.add_resource(HardUpdate, '/hardUpdate')
 
-# todo load the graph to a tlp instance for big compute like DOI
-# create_tlp_instance = create_tlp()
-# create_tlp_instance.create_full()
+# todo load the complete graph to a tlp instance for big compute like DOI
 
 
 if __name__ == '__main__':
