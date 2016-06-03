@@ -18,7 +18,7 @@ add_post_routes(api)
 add_comment_routes(api)
 add_tulip_routes(api)
 
-# temporary route
+# todo remove temporary route
 api.add_resource(Update, '/update')
 api.add_resource(HardUpdate, '/hardUpdate')
 api.add_resource(CreateTlp, '/createtlp')

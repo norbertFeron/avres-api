@@ -6,6 +6,7 @@ import exportsigma
 
 config = configparser.ConfigParser()
 config.read("config.ini")
+#config.read("../config.ini")
 
 
 class CreateFullTlp(object):
@@ -116,11 +117,9 @@ class CreateFullTlp(object):
 
         # Apply forcedirected layout
         tulip_graph.applyLayoutAlgorithm("FM^3 (OGDF)")
-
-        print("Save the graph to %s" % config['exporter']['tlp_path'])
-        tlp.saveGraph(tulip_graph, config['exporter']['tlp_path'])
-        path = "/Users/nferon/PycharmProjects/graph-ryder-api/data/tmp/complete.json"
-        tlp.exportGraph("SIGMA JSON Export", tulip_graph, path)
+        filename = "complete"
+        tlp.saveGraph(tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], filename))
+        tlp.exportGraph("SIGMA JSON Export", tulip_graph, "%s%s.json" % (config['exporter']['json_path'], filename))
 
     @staticmethod
     def find_node_by_id(wanted_id, graph, type_id):
@@ -129,3 +128,8 @@ class CreateFullTlp(object):
                 return node
         print("ERROR cannot finding node %s " % wanted_id)
         return None
+
+if __name__ == '__main__':
+    creator = CreateFullTlp()
+    creator.create()
+    print("Tulip graph as been created from database")

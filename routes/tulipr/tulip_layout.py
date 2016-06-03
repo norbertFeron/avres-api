@@ -18,9 +18,7 @@ class GetLayoutAlgorithm(Resource):
 class DrawCompleteGraph(Resource):
     def get(self, layout):
         tulip_graph = tlp.loadGraph(config['exporter']['tlp_path'])
-        layout = "FM^3 (OGDF)"
-        # todo why this crash python ?
         tulip_graph.applyLayoutAlgorithm(layout)
-        path = "/Users/nferon/PycharmProjects/graph-ryder-api/data/tmp/complete.json"
+        path = "%s%s.json" % (config['exporter']['tlp_path'], "complete")
         tlp.exportGraph("SIGMA JSON Export", tulip_graph, path)
         return send_file(path)
