@@ -69,13 +69,13 @@ class CreateFullTlp(object):
             color[n] = tlp.Color.ElectricBlue
             size[n] = tlp.Size(1, 2, 1)
             cid[n] = comment['cid']
-            if comment['title']:
-                title[n] = comment['title']
-                word = comment['title'].split(' ')
+            if comment['subject']:
+                title[n] = comment['subject']
+                word = comment['subject'].split(' ')
                 if len(word) > 3:
                     label[n] = "%s %s %s ..." % (word[0], word[1], word[2])
                 else:
-                    label[n] = comment['title']
+                    label[n] = comment['subject']
 
         print("Create AUTHORSHIP edges")
         for link in self.neo4j_graph.match(start_node=None, rel_type='AUTHORSHIP', end_node=None, bidirectional=False,
