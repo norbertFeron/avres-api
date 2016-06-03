@@ -1,5 +1,6 @@
 from importer.importFromJson import ImportFromJson
 from flask_restful import Resource
+from graphtulip.createfulltlp import CreateFullTlp
 
 
 class Update(Resource):
@@ -19,6 +20,13 @@ class HardUpdate(Resource):
         importer.create_comments()
         importer.end_import()
         return importer.end_import()
+
+
+class CreateTlp(Resource):
+    def get(self):
+        creator = CreateFullTlp()
+        creator.create()
+        return True
 
 if __name__ == '__main__':
     importer = ImportFromJson()
