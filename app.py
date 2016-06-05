@@ -5,7 +5,8 @@ from routes.user.user_routes import add_user_routes
 from routes.comment.comment_routes import add_comment_routes
 from routes.post.post_routes import add_post_routes
 from routes.tulipr.tulip_routes import add_tulip_routes
-from update_database import Update, HardUpdate, CreateTlp
+from update_database import Update, HardUpdate, GetCreateTlpFull, GetCreateTlp
+import exportsigma
 
 config = configparser.ConfigParser()
 config.read("config.ini")
@@ -21,7 +22,8 @@ add_tulip_routes(api)
 # todo remove temporary route
 api.add_resource(Update, '/update')
 api.add_resource(HardUpdate, '/hardUpdate')
-api.add_resource(CreateTlp, '/createtlp')
+api.add_resource(GetCreateTlpFull, '/createfulltlp')
+api.add_resource(GetCreateTlp, '/createtlp')
 
 # todo load the complete graph to a tlp instance for big compute like DOI
 

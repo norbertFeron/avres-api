@@ -1,12 +1,9 @@
 from tulip import *
 import configparser
 from py2neo import *
-# todo move exportsigma to a directory
-import exportsigma
 
 config = configparser.ConfigParser()
 config.read("config.ini")
-#config.read("../config.ini")
 
 
 class CreateFullTlp(object):
@@ -14,30 +11,30 @@ class CreateFullTlp(object):
         super(CreateFullTlp, self).__init__()
         print('Initializing')
         self.neo4j_graph = Graph(host=config['neo4j']['url'], user=config['neo4j']['user'], password=config['neo4j']['password'])
+        self.tulip_graph = tlp.newGraph()
 
     def create(self):
         '''
         Builds a tulip version of the whole database
         '''
 
-        tulip_graph = tlp.newGraph()
-        tulip_graph.setName('opencare')
-        shape = tulip_graph.getIntegerProperty('viewShape')
-        color = tulip_graph.getColorProperty('viewColor')
-        size = tulip_graph.getSizeProperty('viewSize')
-        label = tulip_graph.getStringProperty('viewLabel')
+        self.tulip_graph.setName('opencare')
+        shape = self.tulip_graph.getIntegerProperty('viewShape')
+        color = self.tulip_graph.getColorProperty('viewColor')
+        size = self.tulip_graph.getSizeProperty('viewSize')
+        label = self.tulip_graph.getStringProperty('viewLabel')
         # uid for users / nid for content nodes / cid for comments
-        uid = tulip_graph.getIntegerProperty('uid')
-        pid = tulip_graph.getIntegerProperty('pid')
-        cid = tulip_graph.getIntegerProperty('cid')
-        name = tulip_graph.getStringProperty('name')
-        element_type = tulip_graph.getStringProperty('node_type')
-        body = tulip_graph.getStringProperty('body')
-        title = tulip_graph.getStringProperty('title')
+        uid = self.tulip_graph.getIntegerProperty('uid')
+        pid = self.tulip_graph.getIntegerProperty('pid')
+        cid = self.tulip_graph.getIntegerProperty('cid')
+        name = self.tulip_graph.getStringProperty('name')
+        element_type = self.tulip_graph.getStringProperty('node_type')
+        body = self.tulip_graph.getStringProperty('body')
+        title = self.tulip_graph.getStringProperty('title')
 
         print("Read Users")
         for user in self.neo4j_graph.find('user'):
-            n = tulip_graph.addNode()
+            n = self.tulip_graph.addNode()
             element_type[n] = 'user'
             shape[n] = tlp.NodeShape.GlowSphere
             color[n] = tlp.Color.Tan
@@ -48,7 +45,7 @@ class CreateFullTlp(object):
 
         print("Read Posts")
         for post in self.neo4j_graph.find('post'):
-            n = tulip_graph.addNode()
+            n = self.tulip_graph.addNode()
             element_type[n] = 'post'
             shape[n] = tlp.NodeShape.RoundedBox
             color[n] = tlp.Color.Lilac
@@ -63,7 +60,7 @@ class CreateFullTlp(object):
 
         print("Read Comments")
         for comment in self.neo4j_graph.find('comment'):
-            n = tulip_graph.addNode()
+            n = self.tulip_graph.addNode()
             element_type[n] = 'comment'
             shape[n] = tlp.NodeShape.RoundedBox
             color[n] = tlp.Color.ElectricBlue
@@ -91,7 +88,7 @@ class CreateFullTlp(object):
                 t_id = target['cid']
                 tulip_target = self.find_node_by_id(t_id, tulip_graph, cid)
             if tulip_source and tulip_target:
-                e = tulip_graph.addEdge(tulip_source, tulip_target)
+                e = self.tulip_graph.addEdge(tulip_source, tulip_target)
             else:
                 print("ERROR source or target is not define")
             element_type[e] = 'AUTHORSHIP'
@@ -110,16 +107,17 @@ class CreateFullTlp(object):
                 t_id = target['cid']
                 tulip_target = self.find_node_by_id(t_id, tulip_graph, cid)
             if tulip_source and tulip_target:
-                e = tulip_graph.addEdge(tulip_source, tulip_target)
+                e = self.tulip_graph.addEdge(tulip_source, tulip_target)
             else:
                 print("ERROR source or target is not define")
             element_type[e] = 'COMMENTS'
 
-        # Apply forcedirected layout
-        tulip_graph.applyLayoutAlgorithm("FM^3 (OGDF)")
+        print("Apply LayoutAlgorithm")
+        self.tulip_graph.applyLayoutAlgorithm("FM^3 (OGDF)")
+        print("Export")
         filename = "complete"
-        tlp.saveGraph(tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], filename))
-        tlp.exportGraph("SIGMA JSON Export", tulip_graph, "%s%s.json" % (config['exporter']['json_path'], filename))
+        tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], filename))
+        tlp.exportGraph("SIGMA JSON Export", self.tulip_graph, "%s%s.json" % (config['exporter']['json_path'], filename))
 
     @staticmethod
     def find_node_by_id(wanted_id, graph, type_id):
@@ -128,8 +126,3 @@ class CreateFullTlp(object):
                 return node
         print("ERROR cannot finding node %s " % wanted_id)
         return None
-
-if __name__ == '__main__':
-    creator = CreateFullTlp()
-    creator.create()
-    print("Tulip graph as been created from database")
