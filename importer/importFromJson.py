@@ -131,6 +131,7 @@ class ImportFromJson(object):
                     query_neo4j(req).single()
                 except ResultError:
                     print("WARNING : post pid : %d as no author uid : %s" % (post_node['pid'], post_fields['Author uid']))
+                    query_neo4j("MATCH (p:post {pid : %s}) DETACH DELETE p" % post_node['pid'])
                     self.unavailable_users_id.append(post_fields['Author uid'])
 
             # TimeTree
@@ -174,6 +175,7 @@ class ImportFromJson(object):
                     query_neo4j(req).single()
                 except ResultError:
                     print("WARNING : comment cid : %d as no author uid : %s" % (comment_node['cid'], comment_fields['Author uid']))
+                    query_neo4j("MATCH (c:comment {cid : %s}) DETACH DELETE c" % comment_node['cid'])
                     if comment_fields['Author uid'] not in self.unavailable_users_id:
                         self.unavailable_users_id.append(comment_fields['Author uid'])
             # ParentPost
@@ -185,6 +187,7 @@ class ImportFromJson(object):
                     query_neo4j(req).single()
                 except ResultError:
                     print("WARNING : comment cid : %d as no post parent pid : %s" % (comment_node['cid'], comment_fields['Nid'].replace(",", "")))
+                    query_neo4j("MATCH (c:comment {cid : %s}) DETACH DELETE c" % comment_node['cid'])
                     if comment_fields['Nid'] not in self.unavailable_posts_id:
                         self.unavailable_posts_id.append(comment_fields['Nid'])
 
@@ -209,6 +212,7 @@ class ImportFromJson(object):
                     query_neo4j(req).single()
                 except ResultError:
                     print("WARNING : comment cid : %d as no comment parent pid : %s" % (comment_node['cid'], comment_fields['Parent CID']))
+                    query_neo4j("MATCH (c:comment {cid : %s}) DETACH DELETE c" % comment_node['cid'])
                     if comment_fields['Parent CID'] not in self.unavailable_comments_id:
                         self.unavailable_comments_id.append(comment_fields['Parent CID'])
 
