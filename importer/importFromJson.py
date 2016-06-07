@@ -46,7 +46,8 @@ class ImportFromJson(object):
             if user_fields['Age_Group']:
                 user_node['age'] = user_fields['Age_Group']
             if user_fields['Email']:
-                user_node['email'] = user_fields['Email']
+                # user_node['email'] = user_fields['Email']
+                user_node['email'] = "nomail@nomail.com"
             if user_fields['Facebook_URL']:
                 user_node['facebook'] = user_fields['Facebook_URL']
             if user_fields['First_Name']:
