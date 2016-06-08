@@ -1,7 +1,7 @@
 from flask_restful import Resource
 from neo4j.v1 import ResultError
 from connector import neo4j
-from routes.utils import addargs
+from routes.utils import addargs, makeResponse
 
 
 class GetUser(Resource):
@@ -9,9 +9,9 @@ class GetUser(Resource):
         req = "MATCH (find:user {uid: %d}) RETURN find" % user_id
         result = neo4j.query_neo4j(req)
         try:
-            return result.single()['find'].properties, 200
+            return makeResponse(result.single()['find'].properties, 200)
         except ResultError:
-            return "ERROR : Cannot find user with uid: %d" % user_id, 200  # todo create error code
+            return makeResponse("ERROR : Cannot find user with uid: %d" % user_id, 204)
 
 
 class GetUserHydrate(Resource):
@@ -35,10 +35,10 @@ class GetUserHydrate(Resource):
         try:
             user
         except NameError:
-            return "ERROR : Cannot find post with pid: %d" % user_id, 200
+            return makeResponse("ERROR : Cannot find post with pid: %d" % user_id, 204)
         user['posts'] = posts
         user['comments'] = comments
-        return user, 200
+        return makeResponse(user, 200)
 
 
 class GetUsers(Resource):
@@ -49,7 +49,7 @@ class GetUsers(Resource):
         users = []
         for record in result:
             users.append(record['find'].properties)
-        return users
+        return makeResponse(users, 200)
 
 
 class GetShortestPathBetweenUsers(Resource):
@@ -59,7 +59,7 @@ class GetShortestPathBetweenUsers(Resource):
         result = neo4j.query_neo4j(req)
         try:
             print(result.single()['path'])  # todo this is the path ?
-            return 'I don\'t understand the result, sorry.', 200
+            return 'I don\'t understand the result, sorry.', 202
         except ResultError:
-            return "ERROR : Cannot find a path between uid: %d and uid: %d with maximum %d hop" % (
-                user1_id, user2_id, max_hop), 200
+            return makeResponse("ERROR : Cannot find a path between uid: %d and uid: %d with maximum %d hop" % (
+                user1_id, user2_id, max_hop), 204)

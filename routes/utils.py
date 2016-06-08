@@ -1,4 +1,6 @@
 from flask_restful import reqparse
+from flask import make_response
+import json
 
 parser = reqparse.RequestParser()
 parser.add_argument('limit')
@@ -29,3 +31,10 @@ def addargs():
     req = addorderby()
     req += addlimit()
     return req
+
+
+def makeResponse(result, code=200):
+    response = make_response(json.dumps(result), code)
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    # todo add all headers
+    return response
