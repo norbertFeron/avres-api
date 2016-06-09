@@ -59,7 +59,7 @@ class CreateTlp(object):
     # 	strNul = "testNul"
     # 	exec(strNul)[node] = 1
 
-    def create(self):
+    def create(self, field, value, graph_id):
         # View properties
         viewBorderColor = self.tulip_graph.getColorProperty("viewBorderColor")
         viewBorderWidth = self.tulip_graph.getDoubleProperty("viewBorderWidth")
@@ -96,7 +96,7 @@ class CreateTlp(object):
 
         # Get the nodes of Neo4J
         print("Read Nodes")
-        for qr in self.neo4j_graph.run("MATCH (n) RETURN ID(n),n"):
+        for qr in self.neo4j_graph.run("MATCH (n { %s : %s}) RETURN ID(n),n" % (field, value)):
             n = self.tulip_graph.addNode()
             self.managePropertiesEntity(n, qr[1], nodeProperties)
             self.manageLabelsNode(labelsNodeTlp, n, qr[1])
@@ -106,24 +106,24 @@ class CreateTlp(object):
 
         # Get the edges of Neo4J
         print("Read Edges")
-        for qr in self.neo4j_graph.run("MATCH (n1)-[e]->(n2) RETURN ID(e),ID(n1),ID(n2),e"):
-            # for n in self.tulip_graph.getNodes():
-            # 	if(tmpIDNode[n]==qr[1]):
-            # 		tmpNode1 = n
-            # 	if(tmpIDNode[n]==qr[2]):
-            # 		tmpNode2 = n
-            # e = self.tulip_graph.addEdge(tmpNode1,tmpNode2)
+        result = self.neo4j_graph.run("MATCH (n1 {%s : %s})-[e]-(n2) RETURN ID(e),ID(n1),ID(n2),n2,e" % (field, value))
+        for qr in result:
+            # add new nodes
+            n = self.tulip_graph.addNode()
+            self.managePropertiesEntity(n, qr[3], nodeProperties)
+            self.manageLabelsNode(labelsNodeTlp, n, qr[3])
+            tmpIDNode[n] = qr[2]
+            # keep the reference for edges creation
+            indexNodes[qr[2]] = n
+
+            # edge
             e = self.tulip_graph.addEdge(indexNodes[qr[1]], indexNodes[qr[2]])
-            self.managePropertiesEntity(e, qr[3], edgeProperties)
+            self.managePropertiesEntity(e, qr[4], edgeProperties)
             # manageLabelEdge(labelEdgeTlp,e,qr[3])
-            labelEdgeTlp[e] = qr[3].type()
+            labelEdgeTlp[e] = qr[4].type()
             tmpIDEdge[e] = qr[0]
 
-        print("Apply LayoutAlgorithm")
-        self.tulip_graph.applyLayoutAlgorithm("FM^3 (OGDF)")
         print("Export")
-        filename = "complete"
-        tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], filename))
-        tlp.exportGraph("SIGMA JSON Export", self.tulip_graph, "%s%s.json" % (config['exporter']['json_path'], filename))
+        tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], graph_id))
 
 

@@ -33,7 +33,7 @@ class GetCreateTlpFull(Resource):
 class GetCreateTlp(Resource):
     def get(self):
         creator = CreateTlp()
-        creator.create()
+        creator.create("uid", "32", "noemi")
         return True
 
 if __name__ == '__main__':
