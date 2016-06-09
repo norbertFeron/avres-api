@@ -9,7 +9,7 @@ class GetUser(Resource):
         req = "MATCH (find:user {uid: %d}) RETURN find" % user_id
         result = neo4j.query_neo4j(req)
         try:
-            return makeResponse(result.single()['find'].properties, 200)
+            return makeResponse([result.single()['find'].properties], 200)
         except ResultError:
             return makeResponse("ERROR : Cannot find user with uid: %d" % user_id, 204)
 
