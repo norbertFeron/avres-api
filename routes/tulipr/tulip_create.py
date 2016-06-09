@@ -18,4 +18,4 @@ class CreateGraph(Resource):
         graph_id = uuid.uuid4()
         creator = CreateTlp()
         creator.create(field, value, graph_id)
-        return makeResponse(graph_id.urn[9:])
+        return makeResponse([graph_id.urn[9:]])

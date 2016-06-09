@@ -32,7 +32,7 @@ class DrawGraph(Resource):
         # check if the graph exist
         # todo change to a database with id -> filePath for security
         if not os.path.isfile("%s%s.tlp" % (config['exporter']['tlp_path'], graph_id)):
-            return makeResponse("Unknow graph id : %s" % graph_id)
+            return makeResponse(["Unknow graph id : %s" % graph_id])
         tulip_graph = tlp.loadGraph("%s%s.tlp" % (config['exporter']['tlp_path'], graph_id))
         tulip_graph.applyLayoutAlgorithm(layout)
         path = "%s%s.json" % (config['exporter']['json_path'], graph_id)

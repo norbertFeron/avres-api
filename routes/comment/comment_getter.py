@@ -1,7 +1,7 @@
 from flask_restful import Resource
 from neo4j.v1 import ResultError
 from connector import neo4j
-from routes.utils import addargs
+from routes.utils import addargs, makeResponse
 
 
 class GetComment(Resource):
@@ -9,9 +9,9 @@ class GetComment(Resource):
         req = "MATCH (find:comment {cid: %d}) RETURN find" % comment_id
         result = neo4j.query_neo4j(req)
         try:
-            return result.single()['find'].properties, 200
+            return makeResponse([result.single()['find'].properties], 200)
         except ResultError:
-            return "ERROR : Cannot find comment with cid: %d" % comment_id, 200
+            return makeResponse("ERROR : Cannot find comment with cid: %d" % comment_id, 204)
 
 
 class GetCommentHydrate(Resource):
@@ -49,7 +49,7 @@ class GetCommentHydrate(Resource):
             return "ERROR : Cannot find post with pid: %d" % comment_id, 200
         comment['comments'] = comments
         comment['author'] = author
-        return comment, 200
+        return makeResponse([comment], 200)
 
 
 class GetComments(Resource):
@@ -60,7 +60,7 @@ class GetComments(Resource):
         comments = []
         for record in result:
             comments.append(record['find'].properties)
-        return comments
+        return makeResponse(comments, 200)
 
 
 class GetCommentsByAuthor(Resource):
@@ -71,7 +71,7 @@ class GetCommentsByAuthor(Resource):
         comments = []
         for record in result:
             comments.append(record['c'].properties)
-        return comments
+        return makeResponse(comments, 200)
 
 
 class GetCommentsOnPost(Resource):
@@ -82,7 +82,7 @@ class GetCommentsOnPost(Resource):
         comments = []
         for record in result:
             comments.append(record['c'].properties)
-        return comments
+        return makeResponse(comments, 200)
 
 
 class GetCommentsOnComment(Resource):
@@ -93,4 +93,4 @@ class GetCommentsOnComment(Resource):
         comments = []
         for record in result:
             comments.append(record['c'].properties)
-        return comments
+        return makeResponse(comments, 200)

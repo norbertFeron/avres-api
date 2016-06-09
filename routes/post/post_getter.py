@@ -1,16 +1,16 @@
 from flask_restful import Resource
 from neo4j.v1 import ResultError
 from connector import neo4j
-from routes.utils import addargs
+from routes.utils import addargs, makeResponse
 
 
 class GetPost(Resource):
     def get(self, post_id):
         result = neo4j.query_neo4j("MATCH (find:post {pid: %d}) RETURN find" % post_id)
         try:
-            return result.single()['find'].properties, 200
+            return makeResponse([result.single()['find'].properties], 200)
         except ResultError:
-            return "ERROR : Cannot find post with pid: %d" % post_id, 200
+            return makeResponse("ERROR : Cannot find post with pid: %d" % post_id, 204)
 
 
 class GetPostHydrate(Resource): # todo comments on comments (with author)
@@ -41,7 +41,7 @@ class GetPostHydrate(Resource): # todo comments on comments (with author)
             return "ERROR : Cannot find post with pid: %d" % post_id, 200
         post['comments'] = comments
         post['author'] = author
-        return post, 200
+        return makeResponse(post, 200)
 
 
 class GetPosts(Resource):
@@ -52,7 +52,7 @@ class GetPosts(Resource):
         posts = []
         for record in result:
             posts.append(record['find'].properties)
-        return posts
+        return makeResponse(posts, 200)
 
 
 class GetPostsByType(Resource):
@@ -63,7 +63,7 @@ class GetPostsByType(Resource):
         posts = []
         for record in result:
             posts.append(record['find'].properties)
-        return posts
+        return makeResponse(posts, 200)
 
 
 class GetPostsByAuthor(Resource):
@@ -74,7 +74,7 @@ class GetPostsByAuthor(Resource):
         posts = []
         for record in result:
             posts.append(record['p'].properties)
-        return posts
+        return makeResponse(posts, 200)
 
 
 class GetPostType(Resource):
@@ -84,4 +84,4 @@ class GetPostType(Resource):
         types = []
         for record in result:
             types.append(record['type'])
-        return types
+        return makeResponse(types, 200)
