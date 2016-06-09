@@ -36,5 +36,6 @@ api.add_resource(GetCreateTlp, '/createtlp')
 if __name__ == '__main__':
     app.run(host=config['api']['host'],
             port=int(config['api']['port']),
-            debug=config['api']['debug']
+            debug=config['api']['debug'],
+            threaded = True
             )
