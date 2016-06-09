@@ -14,6 +14,8 @@ class CreateTlp(object):
         self.neo4j_graph = Graph(host=config['neo4j']['url'], user=config['neo4j']['user'], password=config['neo4j']['password'])
         self.tulip_graph = tlp.newGraph()
         self.tulip_graph.setName('opencare')
+        # todo pass in parameters labels
+        self.labels = ["title", "subject", "name"]
 
     # -----------------------------------------------------------
     # the updateVisualization(centerViews = True) function can be called
@@ -34,7 +36,10 @@ class CreateTlp(object):
         # print 'WIP'
         for i in entN4J.properties:
             tmpValue = str(entN4J.properties[i])
-            if (i in entProperties):
+            if i in self.labels:
+                entProperties["viewLabel"] = self.tulip_graph.getStringProperty("viewLabel")
+                entProperties["viewLabel"][entTlp] = tmpValue
+            if i in entProperties:
                 entProperties[i][entTlp] = tmpValue
             else:
                 # print type(tmpValue)
