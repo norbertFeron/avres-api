@@ -80,13 +80,13 @@ class CreateFullTlp(object):
             source = link.start_node()
             target = link.end_node()
             s_id = source['uid']
-            tulip_source = self.find_node_by_id(s_id, tulip_graph, uid)
+            tulip_source = self.find_node_by_id(s_id, self.tulip_graph, uid)
             if target['pid']:
                 t_id = target['pid']
-                tulip_target = self.find_node_by_id(t_id, tulip_graph, pid)
+                tulip_target = self.find_node_by_id(t_id, self.tulip_graph, pid)
             if target['cid']:
                 t_id = target['cid']
-                tulip_target = self.find_node_by_id(t_id, tulip_graph, cid)
+                tulip_target = self.find_node_by_id(t_id, self.tulip_graph, cid)
             if tulip_source and tulip_target:
                 e = self.tulip_graph.addEdge(tulip_source, tulip_target)
             else:
@@ -99,13 +99,13 @@ class CreateFullTlp(object):
             source = link.start_node()
             target = link.end_node()
             s_id = source['cid']
-            tulip_source = self.find_node_by_id(s_id, tulip_graph, cid)
+            tulip_source = self.find_node_by_id(s_id, self.tulip_graph, cid)
             if target['pid']:
                 t_id = target['pid']
-                tulip_target = self.find_node_by_id(t_id, tulip_graph, pid)
+                tulip_target = self.find_node_by_id(t_id, self.tulip_graph, pid)
             elif target['cid']:
                 t_id = target['cid']
-                tulip_target = self.find_node_by_id(t_id, tulip_graph, cid)
+                tulip_target = self.find_node_by_id(t_id, self.tulip_graph, cid)
             if tulip_source and tulip_target:
                 e = self.tulip_graph.addEdge(tulip_source, tulip_target)
             else:
