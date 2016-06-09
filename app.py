@@ -1,4 +1,5 @@
 import configparser
+import os
 from flask import Flask
 from flask_restful import Api
 from routes.user.user_routes import add_user_routes
@@ -9,6 +10,11 @@ from update_database import Update, HardUpdate, GetCreateTlpFull, GetCreateTlp
 
 config = configparser.ConfigParser()
 config.read("config.ini")
+
+if not os.path.exists(config['exporter']['tlp_path']):
+    os.makedirs(config['exporter']['tlp_path'])
+if not os.path.exists(config['exporter']['json_path']):
+    os.makedirs(config['exporter']['json_path'])
 
 app = Flask(__name__)
 api = Api(app)
