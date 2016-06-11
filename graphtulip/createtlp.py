@@ -14,8 +14,9 @@ class CreateTlp(object):
         self.neo4j_graph = Graph(host=config['neo4j']['url'], user=config['neo4j']['user'], password=config['neo4j']['password'])
         self.tulip_graph = tlp.newGraph()
         self.tulip_graph.setName('opencare')
-        # todo pass in parameters labels
+        # todo pass in parameters labels and colors
         self.labels = ["title", "subject", "name"]
+        self.colors = {"uid": tlp.Color.Tan, "pid": tlp.Color.Lilac, "cid": tlp.Color.ElectricBlue}
 
     # -----------------------------------------------------------
     # the updateVisualization(centerViews = True) function can be called
@@ -39,6 +40,9 @@ class CreateTlp(object):
             if i in self.labels:
                 entProperties["viewLabel"] = self.tulip_graph.getStringProperty("viewLabel")
                 entProperties["viewLabel"][entTlp] = tmpValue
+            if i in self.colors.keys():
+                entProperties["viewColor"] = self.tulip_graph.getColorProperty("viewColor")
+                entProperties["viewColor"][entTlp] = self.colors.get(i)
             if i in entProperties:
                 entProperties[i][entTlp] = tmpValue
             else:
@@ -111,7 +115,10 @@ class CreateTlp(object):
 
         # Get the edges of Neo4J
         print("Read Edges")
-        result = self.neo4j_graph.run("MATCH (n1 {%s : %s})-[e]-(n2) RETURN ID(e),ID(n1),ID(n2),n2,e" % (field, value))
+        req = "MATCH (n1 {%s : %s})-[e]-(n2) " % (field, value)
+        req += "WHERE not (n1)-[e:CREATED_ON]-(n2) "
+        req += "RETURN ID(e),ID(n1),ID(n2),n2,e"
+        result = self.neo4j_graph.run(req)
         for qr in result:
             # add new nodes
             n = self.tulip_graph.addNode()
