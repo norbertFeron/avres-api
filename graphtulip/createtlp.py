@@ -116,9 +116,9 @@ class CreateTlp(object):
         # Get the edges of Neo4J
         print("Read Edges")
         req = "MATCH (n1 {%s : %s})-[e]-(n2) " % (field, value)
-        req += "WHERE not (n1)-[e:CREATED_ON]-(n2) "
-        req += "AND (n1)-[e:POST_ON]-(n2) "
-        req += "AND (n1)-[e:WRITE_ON]-(n2) "
+        req += "WHERE NOT (n1)-[e:CREATED_ON]-(n2) "
+        req += "AND NOT (n1)-[e:POST_ON]-(n2) "
+        req += "AND NOT (n1)-[e:WRITE_ON]-(n2) "
         req += "RETURN ID(e),ID(n1),ID(n2),n2,e"
         result = self.neo4j_graph.run(req)
         for qr in result:
