@@ -1,16 +1,18 @@
-import configparser
-import os
 import uuid
-
 from flask_restful import Resource, reqparse
 from routes.utils import makeResponse
 from graphtulip.createtlp import CreateTlp
-from tulip import *
-
-config = configparser.ConfigParser()
-config.read("config.ini")
+from graphtulip.createfulltlp import CreateFullTlp
+from graphtulip.degreeOfInterest import DOIContext
 
 parser = reqparse.RequestParser()
+
+
+class CreateFullGraph(Resource):
+    def get(self):
+        creator = CreateFullTlp()
+        creator.create()
+        return True
 
 
 class CreateGraph(Resource):
