@@ -54,12 +54,11 @@ class ExportSigma(tlp.ExportModule):
             # edge properties
             os << '%s"source":"%s", %s' % (hr_2t, self.graph.source(edge).id, hr_n)
             os << '%s"target":"%s", %s' % (hr_2t, self.graph.target(edge).id, hr_n)
-            # todo edge prop
             for prop in self.graph.getObjectProperties():
                 # edge color
                 if prop.getName() == "viewColor":
                     colors = prop.getEdgeStringValue(edge)[1:][:-1].split(',')
-                    os << '%s"color":"rgba(%s,%s,%s,%s)", %s' % (hr_2t, colors[0], colors[1], colors[2], colors[3], hr_n)
+                    os << '%s"color":"rgb(%s,%s,%s)", %s' % (hr_2t, colors[0], colors[1], colors[2], hr_n)
                 # edge label
                 elif prop.getName() == "viewLabel":
                     if prop.getEdgeStringValue(edge):
@@ -72,7 +71,10 @@ class ExportSigma(tlp.ExportModule):
                     value = prop.getEdgeStringValue(edge).replace('"', '\\\"').replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
                     os << '%s"%s":"%s", %s' % (hr_2t, prop.getName(), value, hr_n)
             # sigma id
-            os << '%s"id":"%s"%s' % (hr_2t, edge.id, hr_n)
+            os << '%s"id":"%s"%s,' % (hr_2t, edge.id, hr_n)
+            # settings
+            # todo manage different type and colors of edge
+            os << '%s"type": "curvedArrow" %s' % (hr_2t, hr_n)
             os << '%s }%s' % (hr_t, hr_n)
         os << '], %s' % hr_n
 

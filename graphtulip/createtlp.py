@@ -16,7 +16,7 @@ class CreateTlp(object):
         self.tulip_graph.setName('opencare')
         # todo pass in parameters labels and colors
         self.labels = ["title", "subject", "name"]
-        self.colors = {"uid": tlp.Color.Tan, "pid": tlp.Color.Lilac, "cid": tlp.Color.ElectricBlue}
+        self.colors = {"uid": tlp.Color(0, 0, 255), "pid": tlp.Color(0, 255, 0), "cid": tlp.Color(255, 0, 0)}
 
     # -----------------------------------------------------------
     # the updateVisualization(centerViews = True) function can be called
@@ -38,6 +38,9 @@ class CreateTlp(object):
         for i in entN4J.properties:
             tmpValue = str(entN4J.properties[i])
             if i in self.labels:
+                word = tmpValue.split(' ')
+                if len(word) > 3:
+                    tmpValue = "%s %s %s ..." % (word[0], word[1], word[2])
                 entProperties["viewLabel"] = self.tulip_graph.getStringProperty("viewLabel")
                 entProperties["viewLabel"][entTlp] = tmpValue
             if i in self.colors.keys():
@@ -105,7 +108,9 @@ class CreateTlp(object):
 
         # Get the nodes of Neo4J
         print("Read Nodes")
-        for qr in self.neo4j_graph.run("MATCH (n { %s : %s}) RETURN ID(n),n" % (field, value)):
+        req = "MATCH (n { %s : %s}) RETURN ID(n),n" % (field, value)
+        result = self.neo4j_graph.run(req)
+        for qr in result:
             n = self.tulip_graph.addNode()
             self.managePropertiesEntity(n, qr[1], nodeProperties)
             self.manageLabelsNode(labelsNodeTlp, n, qr[1])
@@ -134,6 +139,8 @@ class CreateTlp(object):
             e = self.tulip_graph.addEdge(indexNodes[qr[1]], indexNodes[qr[2]])
             self.managePropertiesEntity(e, qr[4], edgeProperties)
             # manageLabelEdge(labelEdgeTlp,e,qr[3])
+            edgeProperties["viewLabel"] = self.tulip_graph.getStringProperty("viewLabel")
+            edgeProperties["viewLabel"][e] = qr[4].type()
             labelEdgeTlp[e] = qr[4].type()
             tmpIDEdge[e] = qr[0]
 

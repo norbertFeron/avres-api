@@ -36,7 +36,6 @@ class DOIContext(object):
             if propertie[n] == node_id:
                 node = n
                 break
-        print(node)
         return node
 
     def set_API(self, double_property):
@@ -45,29 +44,32 @@ class DOIContext(object):
 
     def compute_DOI(self, focus_node):
         dist = self.original_graph.getIntegerProperty('distance_to_focus')
-        print(focus_node)
         tlp.maxDistance(self.original_graph, focus_node, dist, tlp.UNDIRECTED)
         for n in self.original_graph.getNodes():
             self.DOI_metric[n] = self.API_metric[n] + self.UI_metric[n] - dist[n]
 
     def compute_context_subgraph(self, focus_node, max_size=20):
         color = self.original_graph.getColorProperty('viewColor')
-        color.setAllNodeValue(tlp.Color(255, 64, 64))
-        #focus_node = self.get_focus_node()
+        # color.setAllNodeValue(tlp.Color(0, 64, 64))
         self.compute_DOI(focus_node)
+        color[focus_node] = tlp.Color(255, 255, 255)
         focus_nodeset = set()
         candidates = [focus_node]
-        while len(candidates) > 0 and len(focus_nodeset) < 20:
+        while len(candidates) > 0 and len(focus_nodeset) < max_size:
             c = sorted(candidates, key=lambda x: self.DOI_metric[x]).pop()
             candidates.pop(candidates.index(c))
             focus_nodeset.add(c)
-            color[c] = tlp.Color(0, 0, 255)
+            if c == focus_node:
+                color[c] = tlp.Color(0, 175, 255)
+            else:
+                color[c] = tlp.Color(255, 0, 0)
             for n in self.original_graph.getInOutNodes(c):
                 if not n in focus_nodeset and not n in candidates:
                     candidates.append(n)
         context_subgraph = self.original_graph.inducedSubGraph(focus_nodeset)
         context_subgraph.setName('context')
         return context_subgraph
+
 
 def create(graph_id, type, node_id):
     graph = tlp.loadGraph("%s%s.tlp" % (config['exporter']['tlp_path'], "complete"))

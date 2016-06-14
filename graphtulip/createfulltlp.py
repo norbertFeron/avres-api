@@ -112,8 +112,8 @@ class CreateFullTlp(object):
                 print("ERROR source or target is not define")
             element_type[e] = 'COMMENTS'
 
-        print("Apply LayoutAlgorithm")
-        self.tulip_graph.applyLayoutAlgorithm("FM^3 (OGDF)")
+        # print("Apply LayoutAlgorithm")
+        # self.tulip_graph.applyLayoutAlgorithm("FM^3 (OGDF)")
         print("Export")
         filename = "complete"
         tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], filename))
