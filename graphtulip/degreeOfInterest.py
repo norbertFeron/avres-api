@@ -19,7 +19,6 @@ class DOIContext(object):
         self.UI_metric.setAllNodeValue(1.0)
         self.DOI_metric = self.original_graph.getDoubleProperty('DOI')
 
-    # todo: search with neo4j the focus
     def get_focus_node(self):
         selection = self.original_graph.getBooleanProperty('viewSelection')
         focus = None
@@ -29,11 +28,12 @@ class DOIContext(object):
                 break
         return focus
 
-    def get_node(self, type, node_id):
+    # todo: search with neo4j the focus
+    def get_node(self, node_type, node_id):
         node = None
-        propertie = self.original_graph.getProperty(type)
+        propertie = self.original_graph.getProperty(node_type)
         for n in self.original_graph.getNodes():
-            if propertie[n] == node_id:
+            if propertie[n] == str(node_id):
                 node = n
                 break
         return node
@@ -61,8 +61,6 @@ class DOIContext(object):
             focus_nodeset.add(c)
             if c == focus_node:
                 color[c] = tlp.Color(0, 175, 255)
-            else:
-                color[c] = tlp.Color(255, 0, 0)
             for n in self.original_graph.getInOutNodes(c):
                 if not n in focus_nodeset and not n in candidates:
                     candidates.append(n)
@@ -71,7 +69,7 @@ class DOIContext(object):
         return context_subgraph
 
 
-def create(graph_id, type, node_id):
+def create(graph_id, node_type, node_id):
     graph = tlp.loadGraph("%s%s.tlp" % (config['exporter']['tlp_path'], "complete"))
     doi = DOIContext(graph)
 
@@ -86,7 +84,7 @@ def create(graph_id, type, node_id):
     doi.set_API(bc)
 
     # f = doi.get_focus_node()
-    f = doi.get_node(type, node_id)
+    f = doi.get_node(node_type, node_id)
     doi.compute_DOI(f)
     context_subgraph = doi.compute_context_subgraph(f)
     tlp.saveGraph(context_subgraph, "%s%s.tlp" % (config['exporter']['tlp_path'], graph_id))

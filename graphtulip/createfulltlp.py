@@ -1,6 +1,6 @@
 from tulip import *
-import configparser
 from py2neo import *
+import configparser
 
 config = configparser.ConfigParser()
 config.read("config.ini")
@@ -10,119 +10,144 @@ class CreateFullTlp(object):
     def __init__(self):
         super(CreateFullTlp, self).__init__()
         print('Initializing')
+
         self.neo4j_graph = Graph(host=config['neo4j']['url'], user=config['neo4j']['user'], password=config['neo4j']['password'])
         self.tulip_graph = tlp.newGraph()
+        self.tulip_graph.setName('opencare')
+        # todo pass in parameters labels and colors
+        self.labels = ["title", "subject", "name"]
+        self.colors = {"uid": tlp.Color(0, 0, 255), "pid": tlp.Color(0, 255, 0), "cid": tlp.Color(255, 0, 0)}
+
+    # -----------------------------------------------------------
+    # the updateVisualization(centerViews = True) function can be called
+    # during script execution to update the opened views
+
+    # the pauseScript() function can be called to pause the script execution.
+    # To resume the script execution, you will have to click on the "Run script " button.
+
+    # the runGraphScript(scriptFile, graph) function can be called to launch another edited script on a tlp.Graph object.
+    # The scriptFile parameter defines the script name to call (in the form [a-zA-Z0-9_]+.py)
+
+    # the main(graph) function must be defined
+    # to run the script on the current graph
+    # -----------------------------------------------------------
+
+    # Can be used with nodes or edges
+    def managePropertiesEntity(self, entTlp, entN4J, entProperties):
+        # print 'WIP'
+        for i in entN4J.properties:
+            tmpValue = str(entN4J.properties[i])
+            if i in self.labels:
+                word = tmpValue.split(' ')
+                if len(word) > 3:
+                    tmpValue = "%s %s %s ..." % (word[0], word[1], word[2])
+                entProperties["viewLabel"] = self.tulip_graph.getStringProperty("viewLabel")
+                entProperties["viewLabel"][entTlp] = tmpValue
+            if i in self.colors.keys():
+                entProperties["viewColor"] = self.tulip_graph.getColorProperty("viewColor")
+                entProperties["viewColor"][entTlp] = self.colors.get(i)
+            if i in entProperties:
+                entProperties[i][entTlp] = tmpValue
+            else:
+                # print type(tmpValue)
+                entProperties[i] = self.tulip_graph.getStringProperty(i)
+                # print 'i = ' + i
+                # print 'has key ? ' + str(i in entProperties)
+                entProperties[i][entTlp] = tmpValue
+
+    def manageLabelsNode(self, labelsNode, nodeTlp, nodeN4J):
+        # print "WIP"
+        tmpArrayString = []
+        for s in nodeN4J.properties:
+            tmpArrayString.append(s)
+        labelsNode[nodeTlp] = tmpArrayString
+
+
+    # def manageLabelEdge(labelEdge,edgeTlp,edgeN4J):
+    # 	labelEdge[edgeTlp] = edgeN4J.type
+
+    # def testTransmmission(graph,node):
+    # 	testNul = self.tulip_graph.getIntegerProperty("testNul")
+    # 	strNul = "testNul"
+    # 	exec(strNul)[node] = 1
 
     def create(self):
-        '''
-        Builds a tulip version of the whole database
-        '''
+        # View properties
+        viewBorderColor = self.tulip_graph.getColorProperty("viewBorderColor")
+        viewBorderWidth = self.tulip_graph.getDoubleProperty("viewBorderWidth")
+        viewColor = self.tulip_graph.getColorProperty("viewColor")
+        viewFont = self.tulip_graph.getStringProperty("viewFont")
+        viewFontAwesomeIcon = self.tulip_graph.getStringProperty("viewFontAwesomeIcon")
+        viewFontSize = self.tulip_graph.getIntegerProperty("viewFontSize")
+        viewLabel = self.tulip_graph.getStringProperty("viewLabel")
+        viewLabelBorderColor = self.tulip_graph.getColorProperty("viewLabelBorderColor")
+        viewLabelBorderWidth = self.tulip_graph.getDoubleProperty("viewLabelBorderWidth")
+        viewLabelColor = self.tulip_graph.getColorProperty("viewLabelColor")
+        viewLabelPosition = self.tulip_graph.getIntegerProperty("viewLabelPosition")
+        viewLayout = self.tulip_graph.getLayoutProperty("viewLayout")
+        viewMetaGraph = self.tulip_graph.getGraphProperty("viewMetaGraph")
+        viewMetric = self.tulip_graph.getDoubleProperty("viewMetric")
+        viewRotation = self.tulip_graph.getDoubleProperty("viewRotation")
+        viewSelection = self.tulip_graph.getBooleanProperty("viewSelection")
+        viewShape = self.tulip_graph.getIntegerProperty("viewShape")
+        viewSize = self.tulip_graph.getSizeProperty("viewSize")
+        viewSrcAnchorShape = self.tulip_graph.getIntegerProperty("viewSrcAnchorShape")
+        viewSrcAnchorSize = self.tulip_graph.getSizeProperty("viewSrcAnchorSize")
+        viewTexture = self.tulip_graph.getStringProperty("viewTexture")
+        viewTgtAnchorShape = self.tulip_graph.getIntegerProperty("viewTgtAnchorShape")
+        viewTgtAnchorSize = self.tulip_graph.getSizeProperty("viewTgtAnchorSize")
 
-        self.tulip_graph.setName('opencare')
-        shape = self.tulip_graph.getIntegerProperty('viewShape')
-        color = self.tulip_graph.getColorProperty('viewColor')
-        size = self.tulip_graph.getSizeProperty('viewSize')
-        label = self.tulip_graph.getStringProperty('viewLabel')
-        # uid for users / nid for content nodes / cid for comments
-        uid = self.tulip_graph.getIntegerProperty('uid')
-        pid = self.tulip_graph.getIntegerProperty('pid')
-        cid = self.tulip_graph.getIntegerProperty('cid')
-        name = self.tulip_graph.getStringProperty('name')
-        element_type = self.tulip_graph.getStringProperty('node_type')
-        body = self.tulip_graph.getStringProperty('body')
-        title = self.tulip_graph.getStringProperty('title')
+        # Entities properties
+        tmpIDNode = self.tulip_graph.getIntegerProperty("tmpIDNode")
+        tmpIDEdge = self.tulip_graph.getIntegerProperty("tmpIDEdge")
+        labelsNodeTlp = self.tulip_graph.getStringVectorProperty("labelsNodeTlp")
+        labelEdgeTlp = self.tulip_graph.getStringProperty("labelEdgeTlp")
+        nodeProperties = {}
+        edgeProperties = {}
+        indexNodes = {}
 
-        print("Read Users")
-        for user in self.neo4j_graph.find('user'):
+        # Prepare node request
+        # todo manage more than one node
+        nodes_req = "MATCH (n) "
+        nodes_req += "WHERE NOT (n:Day) "
+        nodes_req += "AND NOT (n:Month) "
+        nodes_req += "AND NOT (n:Year) "
+        nodes_req += "AND NOT (n:TimeTreeRoot) "
+        nodes_req += "AND NOT (n:group_id) "
+        nodes_req += "AND NOT (n:role) "
+        nodes_req += "AND NOT (n:post_type) "
+        nodes_req += "AND NOT (n:language) "
+        nodes_req += "RETURN ID(n),n"
+
+        # Prepare edge request
+        edges_req = "MATCH (n1)-[e]->(n2) "
+        edges_req += "RETURN ID(e),ID(n1),ID(n2),n2,e"
+
+        # Get the nodes of Neo4J
+        print("Read Nodes")
+        result = self.neo4j_graph.run(nodes_req)
+        for qr in result:
             n = self.tulip_graph.addNode()
-            element_type[n] = 'user'
-            shape[n] = tlp.NodeShape.GlowSphere
-            color[n] = tlp.Color.Tan
-            size[n] = tlp.Size(1, 1, 1)
-            uid[n] = user['uid']
-            name[n] = user['name']
-            label[n] = user['name']
+            self.managePropertiesEntity(n, qr[1], nodeProperties)
+            self.manageLabelsNode(labelsNodeTlp, n, qr[1])
+            tmpIDNode[n] = qr[0]
+            # keep the reference for edges creation
+            indexNodes[qr[0]] = n
 
-        print("Read Posts")
-        for post in self.neo4j_graph.find('post'):
-            n = self.tulip_graph.addNode()
-            element_type[n] = 'post'
-            shape[n] = tlp.NodeShape.RoundedBox
-            color[n] = tlp.Color.Lilac
-            size[n] = tlp.Size(1, 2, 1)
-            pid[n] = post['pid']
-            title[n] = post['title']
-            word = post['title'].split(' ')
-            if len(word) > 3:
-                label[n] = "%s %s %s ..." % (word[0], word[1], word[2])
-            else:
-                label[n] = post['title']
+        # Get the edges of Neo4J
+        print("Read Edges")
+        result = self.neo4j_graph.run(edges_req)
+        for qr in result:
+            if qr[1] in indexNodes and qr[2] in indexNodes:
+                e = self.tulip_graph.addEdge(indexNodes[qr[1]], indexNodes[qr[2]])
+                self.managePropertiesEntity(e, qr[4], edgeProperties)
+                # manageLabelEdge(labelEdgeTlp,e,qr[3])
+                edgeProperties["viewLabel"] = self.tulip_graph.getStringProperty("viewLabel")
+                edgeProperties["viewLabel"][e] = qr[4].type()
+                labelEdgeTlp[e] = qr[4].type()
+                tmpIDEdge[e] = qr[0]
 
-        print("Read Comments")
-        for comment in self.neo4j_graph.find('comment'):
-            n = self.tulip_graph.addNode()
-            element_type[n] = 'comment'
-            shape[n] = tlp.NodeShape.RoundedBox
-            color[n] = tlp.Color.ElectricBlue
-            size[n] = tlp.Size(1, 2, 1)
-            cid[n] = comment['cid']
-            if comment['subject']:
-                title[n] = comment['subject']
-                word = comment['subject'].split(' ')
-                if len(word) > 3:
-                    label[n] = "%s %s %s ..." % (word[0], word[1], word[2])
-                else:
-                    label[n] = comment['subject']
-
-        print("Create AUTHORSHIP edges")
-        for link in self.neo4j_graph.match(start_node=None, rel_type='AUTHORSHIP', end_node=None, bidirectional=False,
-                                           limit=None):
-            source = link.start_node()
-            target = link.end_node()
-            s_id = source['uid']
-            tulip_source = self.find_node_by_id(s_id, self.tulip_graph, uid)
-            if target['pid']:
-                t_id = target['pid']
-                tulip_target = self.find_node_by_id(t_id, self.tulip_graph, pid)
-            if target['cid']:
-                t_id = target['cid']
-                tulip_target = self.find_node_by_id(t_id, self.tulip_graph, cid)
-            if tulip_source and tulip_target:
-                e = self.tulip_graph.addEdge(tulip_source, tulip_target)
-            else:
-                print("ERROR source or target is not define")
-            element_type[e] = 'AUTHORSHIP'
-
-        print("Create COMMENTS edges")
-        for link in self.neo4j_graph.match(start_node=None, rel_type='COMMENTS', end_node=None, bidirectional=False,
-                                           limit=None):
-            source = link.start_node()
-            target = link.end_node()
-            s_id = source['cid']
-            tulip_source = self.find_node_by_id(s_id, self.tulip_graph, cid)
-            if target['pid']:
-                t_id = target['pid']
-                tulip_target = self.find_node_by_id(t_id, self.tulip_graph, pid)
-            elif target['cid']:
-                t_id = target['cid']
-                tulip_target = self.find_node_by_id(t_id, self.tulip_graph, cid)
-            if tulip_source and tulip_target:
-                e = self.tulip_graph.addEdge(tulip_source, tulip_target)
-            else:
-                print("ERROR source or target is not define")
-            element_type[e] = 'COMMENTS'
-
-        # print("Apply LayoutAlgorithm")
-        # self.tulip_graph.applyLayoutAlgorithm("FM^3 (OGDF)")
         print("Export")
-        filename = "complete"
-        tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], filename))
-        tlp.exportGraph("SIGMA JSON Export", self.tulip_graph, "%s%s.json" % (config['exporter']['json_path'], filename))
+        tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], "complete"))
 
-    @staticmethod
-    def find_node_by_id(wanted_id, graph, type_id):
-        for node in graph.getNodes():
-            if type_id.getNodeValue(node) == wanted_id:
-                return node
-        print("ERROR cannot finding node %s " % wanted_id)
-        return None
+

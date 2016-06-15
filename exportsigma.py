@@ -64,8 +64,8 @@ class ExportSigma(tlp.ExportModule):
                     if prop.getEdgeStringValue(edge):
                         label = prop.getEdgeStringValue(edge).replace('"', '\\\"')
                         os << '%s"label":"%s", %s' % (hr_2t, label, hr_n)
-                    else:
-                        os << '%s"label":"edge%s", %s' % (hr_2t, edge.id, hr_n)
+                    # else:
+                        # os << '%s"label":"edge%s", %s' % (hr_2t, edge.id, hr_n)
                 # other
                 elif prop.getEdgeDefaultStringValue() != prop.getEdgeStringValue(edge) and prop.getEdgeStringValue(edge):
                     value = prop.getEdgeStringValue(edge).replace('"', '\\\"').replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")

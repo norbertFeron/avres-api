@@ -106,10 +106,19 @@ class CreateTlp(object):
         edgeProperties = {}
         indexNodes = {}
 
+        # Prepare node request
+        # todo manage more than one node
+        node_req = "MATCH (n { %s : %s}) RETURN ID(n),n" % (field, value)
+        # Prepare edge request
+        edges_req = "MATCH (n1 {%s : %s})-[e]-(n2) " % (field, value)
+        edges_req += "WHERE NOT (n1)-[e:CREATED_ON]-(n2) "
+        edges_req += "AND NOT (n1)-[e:POST_ON]-(n2) "
+        edges_req += "AND NOT (n1)-[e:GROUP_IS]-(n2) "
+        edges_req += "RETURN ID(e),ID(n1),ID(n2),n2,e"
+
         # Get the nodes of Neo4J
         print("Read Nodes")
-        req = "MATCH (n { %s : %s}) RETURN ID(n),n" % (field, value)
-        result = self.neo4j_graph.run(req)
+        result = self.neo4j_graph.run(node_req)
         for qr in result:
             n = self.tulip_graph.addNode()
             self.managePropertiesEntity(n, qr[1], nodeProperties)
@@ -120,12 +129,7 @@ class CreateTlp(object):
 
         # Get the edges of Neo4J
         print("Read Edges")
-        req = "MATCH (n1 {%s : %s})-[e]-(n2) " % (field, value)
-        req += "WHERE NOT (n1)-[e:CREATED_ON]-(n2) "
-        req += "AND NOT (n1)-[e:POST_ON]-(n2) "
-        req += "AND NOT (n1)-[e:GROUP_IS]-(n2) "
-        req += "RETURN ID(e),ID(n1),ID(n2),n2,e"
-        result = self.neo4j_graph.run(req)
+        result = self.neo4j_graph.run(edges_req)
         for qr in result:
             # add new nodes
             n = self.tulip_graph.addNode()
