@@ -6,9 +6,10 @@ config = configparser.ConfigParser()
 config.read("config.ini")
 
 
-class CreateFullTlp(object):
+# todo create a unique Createtlp to avoid code duplication
+class CreateUserTlp(object):
     def __init__(self):
-        super(CreateFullTlp, self).__init__()
+        super(CreateUserTlp, self).__init__()
         print('Initializing')
 
         self.neo4j_graph = Graph(host=config['neo4j']['url'], user=config['neo4j']['user'], password=config['neo4j']['password'])
@@ -107,23 +108,19 @@ class CreateFullTlp(object):
         indexNodes = {}
 
         # Prepare node request
-        nodes_req = "MATCH (n) "
-        nodes_req += "WHERE NOT (n:Day) "
-        nodes_req += "AND NOT (n:Month) "
-        nodes_req += "AND NOT (n:Year) "
-        nodes_req += "AND NOT (n:TimeTreeRoot) "
-        nodes_req += "AND NOT (n:group_id) "
-        nodes_req += "AND NOT (n:role) "
-        nodes_req += "AND NOT (n:post_type) "
-        nodes_req += "AND NOT (n:language) "
+        nodes_req = "MATCH (n:user) "
         nodes_req += "RETURN ID(n),n"
 
-        # Prepare edge request
-        edges_req = "MATCH (n1)-[e]->(n2) "
-        edges_req += "RETURN ID(e),ID(n1),ID(n2),n2,e"
+        # Prepare edge comments request
+        comment_edges_req = "MATCH (n1:user)-[:AUTHORSHIP]->(c:comment)-[:COMMENTS]->(p:post)<-[:AUTHORSHIP]-(n2:user) "
+        comment_edges_req += "RETURN ID(n1),ID(n2),ID(c),ID(p)"
 
-        # Get the nodes of Neo4J
-        print("Read Nodes")
+        # Prepare edge response request
+        resp_edges_req = "MATCH (n1:user)-[:AUTHORSHIP]->(c:comment)-[:COMMENTS]->(c2:comment)<-[:AUTHORSHIP]-(n2:user) "
+        resp_edges_req += "RETURN ID(n1),ID(n2)"
+
+        # Get the users
+        print("Read Users")
         result = self.neo4j_graph.run(nodes_req)
         for qr in result:
             n = self.tulip_graph.addNode()
@@ -133,20 +130,31 @@ class CreateFullTlp(object):
             # keep the reference for edges creation
             indexNodes[qr[0]] = n
 
-        # Get the edges of Neo4J
+        # Get the comments edges
         print("Read Edges")
-        result = self.neo4j_graph.run(edges_req)
+        result = self.neo4j_graph.run(comment_edges_req)
         for qr in result:
-            if qr[1] in indexNodes and qr[2] in indexNodes:
-                e = self.tulip_graph.addEdge(indexNodes[qr[1]], indexNodes[qr[2]])
-                self.managePropertiesEntity(e, qr[4], edgeProperties)
+            if qr[0] in indexNodes and qr[1] in indexNodes:
+                e = self.tulip_graph.addEdge(indexNodes[qr[0]], indexNodes[qr[1]])
+                # self.managePropertiesEntity(e, qr[4], edgeProperties)
                 # manageLabelEdge(labelEdgeTlp,e,qr[3])
                 edgeProperties["viewLabel"] = self.tulip_graph.getStringProperty("viewLabel")
-                edgeProperties["viewLabel"][e] = qr[4].type()
-                labelEdgeTlp[e] = qr[4].type()
-                tmpIDEdge[e] = qr[0]
+                edgeProperties["viewLabel"][e] = "COMMENTS"
+                labelEdgeTlp[e] = "COMMENTS"
+
+        # Get the resp edges
+        print("Read Edges")
+        result = self.neo4j_graph.run(resp_edges_req)
+        for qr in result:
+            if qr[0] in indexNodes and qr[1] in indexNodes:
+                e = self.tulip_graph.addEdge(indexNodes[qr[0]], indexNodes[qr[1]])
+                # self.managePropertiesEntity(e, qr[4], edgeProperties)
+                # manageLabelEdge(labelEdgeTlp,e,qr[3])
+                edgeProperties["viewLabel"] = self.tulip_graph.getStringProperty("viewLabel")
+                edgeProperties["viewLabel"][e] = "REPLY"
+                labelEdgeTlp[e] = "REPLY"
 
         print("Export")
-        tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], "complete"))
+        tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], "usersToUsers"))
 
 

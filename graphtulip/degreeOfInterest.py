@@ -69,8 +69,8 @@ class DOIContext(object):
         return context_subgraph
 
 
-def create(graph_id, node_type, node_id):
-    graph = tlp.loadGraph("%s%s.tlp" % (config['exporter']['tlp_path'], "complete"))
+def create(start_graph ,graph_id, node_type, node_id):
+    graph = tlp.loadGraph("%s%s.tlp" % (config['exporter']['tlp_path'], start_graph))
     doi = DOIContext(graph)
 
     dataset = tlp.getDefaultPluginParameters('Degree', graph)

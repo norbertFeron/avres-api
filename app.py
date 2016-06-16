@@ -28,9 +28,6 @@ add_tulip_routes(api)
 api.add_resource(Update, '/update')
 api.add_resource(HardUpdate, '/hardUpdate')
 
-# todo load the complete graph to a tlp instance for big compute like DOI
-
-
 if __name__ == '__main__':
     app.run(host=config['api']['host'],
             port=int(config['api']['port']),
