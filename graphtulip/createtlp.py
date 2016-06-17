@@ -14,27 +14,21 @@ class CreateTlp(object):
         self.neo4j_graph = Graph(host=config['neo4j']['url'], user=config['neo4j']['user'], password=config['neo4j']['password'])
         self.tulip_graph = tlp.newGraph()
         self.tulip_graph.setName('opencare')
+
+        # Entities properties
+        self.tmpIDNode = self.tulip_graph.getIntegerProperty("self.tmpIDNode")
+        self.tmpIDEdge = self.tulip_graph.getIntegerProperty("self.tmpIDEdge")
+        self.labelsNodeTlp = self.tulip_graph.getStringVectorProperty("self.labelsNodeTlp")
+        self.labelEdgeTlp = self.tulip_graph.getStringProperty("self.labelEdgeTlp")
+        self.nodeProperties = {}
+        self.edgeProperties = {}
+        self.indexNodes = {}
+
         # todo pass in parameters labels and colors
         self.labels = ["title", "subject", "name"]
         self.colors = {"uid": tlp.Color(0, 0, 255), "pid": tlp.Color(0, 255, 0), "cid": tlp.Color(255, 0, 0)}
 
-    # -----------------------------------------------------------
-    # the updateVisualization(centerViews = True) function can be called
-    # during script execution to update the opened views
-
-    # the pauseScript() function can be called to pause the script execution.
-    # To resume the script execution, you will have to click on the "Run script " button.
-
-    # the runGraphScript(scriptFile, graph) function can be called to launch another edited script on a tlp.Graph object.
-    # The scriptFile parameter defines the script name to call (in the form [a-zA-Z0-9_]+.py)
-
-    # the main(graph) function must be defined
-    # to run the script on the current graph
-    # -----------------------------------------------------------
-
-    # Can be used with nodes or edges
     def managePropertiesEntity(self, entTlp, entN4J, entProperties):
-        # print 'WIP'
         for i in entN4J.properties:
             tmpValue = str(entN4J.properties[i])
             if i in self.labels:
@@ -49,106 +43,83 @@ class CreateTlp(object):
             if i in entProperties:
                 entProperties[i][entTlp] = tmpValue
             else:
-                # print type(tmpValue)
                 entProperties[i] = self.tulip_graph.getStringProperty(i)
-                # print 'i = ' + i
-                # print 'has key ? ' + str(i in entProperties)
                 entProperties[i][entTlp] = tmpValue
 
     def manageLabelsNode(self, labelsNode, nodeTlp, nodeN4J):
-        # print "WIP"
         tmpArrayString = []
         for s in nodeN4J.properties:
             tmpArrayString.append(s)
         labelsNode[nodeTlp] = tmpArrayString
 
-
-    # def manageLabelEdge(labelEdge,edgeTlp,edgeN4J):
-    # 	labelEdge[edgeTlp] = edgeN4J.type
-
-    # def testTransmmission(graph,node):
-    # 	testNul = self.tulip_graph.getIntegerProperty("testNul")
-    # 	strNul = "testNul"
-    # 	exec(strNul)[node] = 1
-
-    def create(self, field, value, graph_id):
-        # View properties
-        viewBorderColor = self.tulip_graph.getColorProperty("viewBorderColor")
-        viewBorderWidth = self.tulip_graph.getDoubleProperty("viewBorderWidth")
-        viewColor = self.tulip_graph.getColorProperty("viewColor")
-        viewFont = self.tulip_graph.getStringProperty("viewFont")
-        viewFontAwesomeIcon = self.tulip_graph.getStringProperty("viewFontAwesomeIcon")
-        viewFontSize = self.tulip_graph.getIntegerProperty("viewFontSize")
-        viewLabel = self.tulip_graph.getStringProperty("viewLabel")
-        viewLabelBorderColor = self.tulip_graph.getColorProperty("viewLabelBorderColor")
-        viewLabelBorderWidth = self.tulip_graph.getDoubleProperty("viewLabelBorderWidth")
-        viewLabelColor = self.tulip_graph.getColorProperty("viewLabelColor")
-        viewLabelPosition = self.tulip_graph.getIntegerProperty("viewLabelPosition")
-        viewLayout = self.tulip_graph.getLayoutProperty("viewLayout")
-        viewMetaGraph = self.tulip_graph.getGraphProperty("viewMetaGraph")
-        viewMetric = self.tulip_graph.getDoubleProperty("viewMetric")
-        viewRotation = self.tulip_graph.getDoubleProperty("viewRotation")
-        viewSelection = self.tulip_graph.getBooleanProperty("viewSelection")
-        viewShape = self.tulip_graph.getIntegerProperty("viewShape")
-        viewSize = self.tulip_graph.getSizeProperty("viewSize")
-        viewSrcAnchorShape = self.tulip_graph.getIntegerProperty("viewSrcAnchorShape")
-        viewSrcAnchorSize = self.tulip_graph.getSizeProperty("viewSrcAnchorSize")
-        viewTexture = self.tulip_graph.getStringProperty("viewTexture")
-        viewTgtAnchorShape = self.tulip_graph.getIntegerProperty("viewTgtAnchorShape")
-        viewTgtAnchorSize = self.tulip_graph.getSizeProperty("viewTgtAnchorSize")
-
-        # Entities properties
-        tmpIDNode = self.tulip_graph.getIntegerProperty("tmpIDNode")
-        tmpIDEdge = self.tulip_graph.getIntegerProperty("tmpIDEdge")
-        labelsNodeTlp = self.tulip_graph.getStringVectorProperty("labelsNodeTlp")
-        labelEdgeTlp = self.tulip_graph.getStringProperty("labelEdgeTlp")
-        nodeProperties = {}
-        edgeProperties = {}
-        indexNodes = {}
-
-        # Prepare node request
-        # todo manage more than one node
-        node_req = "MATCH (n { %s : %s}) RETURN ID(n),n" % (field, value)
-        # Prepare edge request
-        edges_req = "MATCH (n1 {%s : %s})-[e]-(n2) " % (field, value)
-        edges_req += "WHERE NOT (n1)-[e:CREATED_ON]-(n2) "
-        edges_req += "AND NOT (n1)-[e:POST_ON]-(n2) "
-        edges_req += "AND NOT (n1)-[e:GROUP_IS]-(n2) "
-        edges_req += "RETURN ID(e),ID(n1),ID(n2),n2,e"
-
-        # Get the nodes of Neo4J
-        print("Read Nodes")
-        result = self.neo4j_graph.run(node_req)
+    def createNodes(self, req):
+        # Expected Format :  RETURN ID(n),n
+        result = self.neo4j_graph.run(req)
         for qr in result:
-            n = self.tulip_graph.addNode()
-            self.managePropertiesEntity(n, qr[1], nodeProperties)
-            self.manageLabelsNode(labelsNodeTlp, n, qr[1])
-            tmpIDNode[n] = qr[0]
-            # keep the reference for edges creation
-            indexNodes[qr[0]] = n
+            if not qr[0] in self.indexNodes:
+                n = self.tulip_graph.addNode()
+                self.managePropertiesEntity(n, qr[1], self.nodeProperties)
+                self.manageLabelsNode(self.labelsNodeTlp, n, qr[1])
+                self.tmpIDNode[n] = qr[0]
+                # keep the reference for edges creation
+                self.indexNodes[qr[0]] = n
 
-        # Get the edges of Neo4J
-        print("Read Edges")
-        result = self.neo4j_graph.run(edges_req)
+    def createEdges(self, req):
+        # Expected Format : RETURN ID(e),ID(n1),ID(n2),n2,e
+        # If n2 not exist it will be create
+        result = self.neo4j_graph.run(req)
         for qr in result:
             # add new nodes
-            n = self.tulip_graph.addNode()
-            self.managePropertiesEntity(n, qr[3], nodeProperties)
-            self.manageLabelsNode(labelsNodeTlp, n, qr[3])
-            tmpIDNode[n] = qr[2]
-            # keep the reference for edges creation
-            indexNodes[qr[2]] = n
+            if not qr[2] in self.indexNodes:
+                n = self.tulip_graph.addNode()
+                self.managePropertiesEntity(n, qr[3], self.nodeProperties)
+                self.manageLabelsNode(self.labelsNodeTlp, n, qr[3])
+                self.tmpIDNode[n] = qr[2]
+                # keep the reference for edges creation
+                self.indexNodes[qr[2]] = n
 
             # edge
-            e = self.tulip_graph.addEdge(indexNodes[qr[1]], indexNodes[qr[2]])
-            self.managePropertiesEntity(e, qr[4], edgeProperties)
-            # manageLabelEdge(labelEdgeTlp,e,qr[3])
-            edgeProperties["viewLabel"] = self.tulip_graph.getStringProperty("viewLabel")
-            edgeProperties["viewLabel"][e] = qr[4].type()
-            labelEdgeTlp[e] = qr[4].type()
-            tmpIDEdge[e] = qr[0]
+            e = self.tulip_graph.addEdge(self.indexNodes[qr[1]], self.indexNodes[qr[2]])
+            self.managePropertiesEntity(e, qr[4], self.edgeProperties)
+            # manageLabelEdge(self.labelEdgeTlp,e,qr[3])
+            self.edgeProperties["viewLabel"] = self.tulip_graph.getStringProperty("viewLabel")
+            self.edgeProperties["viewLabel"][e] = qr[4].type()
+            self.labelEdgeTlp[e] = qr[4].type()
+            self.tmpIDEdge[e] = qr[0]
+
+    def createWithParams(self, params, graph_id):
+        # create nodes pass in params
+        for param in params:
+            field, value = param
+            # Prepare node request
+            node_req = "MATCH (n { %s : %s}) RETURN ID(n),n" % (field, value)
+            # Get the nodes of Neo4J
+            self.createNodes(node_req)
+            # Request neighboors of main nodes
+            edges_req = "MATCH (n1 {%s : %s})-[e]-(n2) " % (field, value)
+            edges_req += "WHERE NOT (n1)-[e:CREATED_ON]-(n2) "
+            edges_req += "AND NOT (n1)-[e:POST_ON]-(n2) "
+            edges_req += "AND NOT (n1)-[e:GROUP_IS]-(n2) "
+            edges_req += "RETURN ID(e),ID(n1),ID(n2),n2,e"
+            # Get the edges of Neo4J
+            print("Read Edges")
+            self.createEdges(edges_req)
+
+            # GOOD RESULT BUT GREEDY
+        # # Search for connection between nodes
+        # if len(params) > 1:
+        #     # Direct link
+        #     # todo manage multiple op link with ShortestPath ?
+        #     for nodeActual in self.indexNodes:
+        #         for nodeOther in self.indexNodes:
+        #             edges_req = "MATCH (n1)-[e]->(n2) "
+        #             edges_req += "WHERE ID(n1) = %s " % nodeActual
+        #             edges_req += "AND ID(n2) = %s " % nodeOther
+        #             edges_req += "RETURN ID(e),ID(n1),ID(n2),n2,e"
+        #             self.createEdges(edges_req)
 
         print("Export")
         tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], graph_id))
+
 
 

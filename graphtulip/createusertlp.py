@@ -73,31 +73,6 @@ class CreateUserTlp(object):
     # 	exec(strNul)[node] = 1
 
     def create(self):
-        # View properties
-        viewBorderColor = self.tulip_graph.getColorProperty("viewBorderColor")
-        viewBorderWidth = self.tulip_graph.getDoubleProperty("viewBorderWidth")
-        viewColor = self.tulip_graph.getColorProperty("viewColor")
-        viewFont = self.tulip_graph.getStringProperty("viewFont")
-        viewFontAwesomeIcon = self.tulip_graph.getStringProperty("viewFontAwesomeIcon")
-        viewFontSize = self.tulip_graph.getIntegerProperty("viewFontSize")
-        viewLabel = self.tulip_graph.getStringProperty("viewLabel")
-        viewLabelBorderColor = self.tulip_graph.getColorProperty("viewLabelBorderColor")
-        viewLabelBorderWidth = self.tulip_graph.getDoubleProperty("viewLabelBorderWidth")
-        viewLabelColor = self.tulip_graph.getColorProperty("viewLabelColor")
-        viewLabelPosition = self.tulip_graph.getIntegerProperty("viewLabelPosition")
-        viewLayout = self.tulip_graph.getLayoutProperty("viewLayout")
-        viewMetaGraph = self.tulip_graph.getGraphProperty("viewMetaGraph")
-        viewMetric = self.tulip_graph.getDoubleProperty("viewMetric")
-        viewRotation = self.tulip_graph.getDoubleProperty("viewRotation")
-        viewSelection = self.tulip_graph.getBooleanProperty("viewSelection")
-        viewShape = self.tulip_graph.getIntegerProperty("viewShape")
-        viewSize = self.tulip_graph.getSizeProperty("viewSize")
-        viewSrcAnchorShape = self.tulip_graph.getIntegerProperty("viewSrcAnchorShape")
-        viewSrcAnchorSize = self.tulip_graph.getSizeProperty("viewSrcAnchorSize")
-        viewTexture = self.tulip_graph.getStringProperty("viewTexture")
-        viewTgtAnchorShape = self.tulip_graph.getIntegerProperty("viewTgtAnchorShape")
-        viewTgtAnchorSize = self.tulip_graph.getSizeProperty("viewTgtAnchorSize")
-
         # Entities properties
         tmpIDNode = self.tulip_graph.getIntegerProperty("tmpIDNode")
         tmpIDEdge = self.tulip_graph.getIntegerProperty("tmpIDEdge")
