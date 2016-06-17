@@ -79,9 +79,12 @@ class GetPostsByAuthor(Resource):
 
 class GetPostType(Resource):
     def get(self):
-        req = "" # todo
+        # todo add optional userId  to count <-[]-(u:user {uid: })
+        req = "MATCH (n:post_type)<-[r:TYPE_IS]-(p:post)  RETURN n, count(r) AS nb_posts"
         result = neo4j.query_neo4j(req)
-        types = []
+        labels = []
+        data = [[]]
         for record in result:
-            types.append(record['type'])
-        return makeResponse(types, 200)
+            labels.append(record['n'].properties['name'])
+            data[0].append(record['nb_posts'])
+        return makeResponse([{'labels': labels, 'data': data}], 200)
