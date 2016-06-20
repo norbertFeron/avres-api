@@ -109,7 +109,7 @@ class CreateTlp(object):
         # # Search for connection between nodes
         # if len(params) > 1:
         #     # Direct link
-        #     # todo manage multiple op link with ShortestPath ?
+        #     # todo manage multiple hop link with ShortestPath ?
         #     for nodeActual in self.indexNodes:
         #         for nodeOther in self.indexNodes:
         #             edges_req = "MATCH (n1)-[e]->(n2) "
@@ -120,6 +120,3 @@ class CreateTlp(object):
 
         print("Export")
         tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], graph_id))
-
-
-
