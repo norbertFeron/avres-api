@@ -16,17 +16,17 @@ class CreateTlp(object):
         self.tulip_graph.setName('opencare')
 
         # Entities properties
-        self.tmpIDNode = self.tulip_graph.getIntegerProperty("self.tmpIDNode")
-        self.tmpIDEdge = self.tulip_graph.getIntegerProperty("self.tmpIDEdge")
-        self.labelsNodeTlp = self.tulip_graph.getStringVectorProperty("self.labelsNodeTlp")
-        self.labelEdgeTlp = self.tulip_graph.getStringProperty("self.labelEdgeTlp")
+        self.tmpIDNode = self.tulip_graph.getIntegerProperty("tmpIDNode")
+        self.tmpIDEdge = self.tulip_graph.getIntegerProperty("tmpIDEdge")
+        self.labelsNodeTlp = self.tulip_graph.getStringVectorProperty("labelsNodeTlp")
+        self.labelEdgeTlp = self.tulip_graph.getStringProperty("labelEdgeTlp")
         self.nodeProperties = {}
         self.edgeProperties = {}
         self.indexNodes = {}
 
         # todo pass in parameters labels and colors
         self.labels = ["title", "subject", "name"]
-        self.colors = {"uid": tlp.Color(0, 0, 255), "pid": tlp.Color(0, 255, 0), "cid": tlp.Color(255, 0, 0)}
+        self.colors = {"uid": tlp.Color(0, 0, 255), "pid": tlp.Color(0, 255, 0), "cid": tlp.Color(255, 100, 0)}
 
     def managePropertiesEntity(self, entTlp, entN4J, entProperties):
         for i in entN4J.properties:
@@ -106,17 +106,15 @@ class CreateTlp(object):
             self.createEdges(edges_req)
 
             # GOOD RESULT BUT GREEDY
-        # # Search for connection between nodes
-        # if len(params) > 1:
-        #     # Direct link
-        #     # todo manage multiple hop link with ShortestPath ?
-        #     for nodeActual in self.indexNodes:
-        #         for nodeOther in self.indexNodes:
-        #             edges_req = "MATCH (n1)-[e]->(n2) "
-        #             edges_req += "WHERE ID(n1) = %s " % nodeActual
-        #             edges_req += "AND ID(n2) = %s " % nodeOther
-        #             edges_req += "RETURN ID(e),ID(n1),ID(n2),n2,e"
-        #             self.createEdges(edges_req)
+        # Search for connection between nodes
+        if len(params) > 1:
+            for nodeActual in self.indexNodes:
+                for nodeOther in self.indexNodes:
+                    edges_req = "MATCH (n1)-[e]->(n2) "
+                    edges_req += "WHERE ID(n1) = %s " % nodeActual
+                    edges_req += "AND ID(n2) = %s " % nodeOther
+                    edges_req += "RETURN ID(e),ID(n1),ID(n2),n2,e"
+                    self.createEdges(edges_req)
 
         print("Export")
         tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], graph_id))

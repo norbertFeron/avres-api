@@ -17,7 +17,7 @@ class CreateUserTlp(object):
         self.tulip_graph.setName('opencare')
         # todo pass in parameters labels and colors
         self.labels = ["title", "subject", "name"]
-        self.colors = {"uid": tlp.Color(0, 0, 255), "pid": tlp.Color(0, 255, 0), "cid": tlp.Color(255, 0, 0)}
+        self.colors = {"uid": tlp.Color(0, 0, 255), "pid": tlp.Color(0, 255, 0), "cid": tlp.Color(255, 100, 0)}
 
     # -----------------------------------------------------------
     # the updateVisualization(centerViews = True) function can be called
@@ -88,11 +88,11 @@ class CreateUserTlp(object):
 
         # Prepare edge comments request
         comment_edges_req = "MATCH (n1:user)-[:AUTHORSHIP]->(c:comment)-[:COMMENTS]->(p:post)<-[:AUTHORSHIP]-(n2:user) "
-        comment_edges_req += "RETURN ID(n1),ID(n2),ID(c),ID(p)"
+        comment_edges_req += "RETURN ID(n1),ID(n2),ID(c),ID(p), c, p"
 
         # Prepare edge response request
         resp_edges_req = "MATCH (n1:user)-[:AUTHORSHIP]->(c:comment)-[:COMMENTS]->(c2:comment)<-[:AUTHORSHIP]-(n2:user) "
-        resp_edges_req += "RETURN ID(n1),ID(n2)"
+        resp_edges_req += "RETURN ID(n1),ID(n2), c, c2"
 
         # Get the users
         print("Read Users")
@@ -111,13 +111,25 @@ class CreateUserTlp(object):
         for qr in result:
             if qr[0] in indexNodes and qr[1] in indexNodes:
                 e = self.tulip_graph.addEdge(indexNodes[qr[0]], indexNodes[qr[1]])
-                # self.managePropertiesEntity(e, qr[4], edgeProperties)
-                # manageLabelEdge(labelEdgeTlp,e,qr[3])
                 edgeProperties["viewLabel"] = self.tulip_graph.getStringProperty("viewLabel")
                 edgeProperties["viewLabel"][e] = "COMMENTS"
                 labelEdgeTlp[e] = "COMMENTS"
+                # post
+                edgeProperties["post_title"] = self.tulip_graph.getStringProperty("post_title")
+                edgeProperties["post_title"][e] = qr[5]['title']
+                edgeProperties["post_body"] = self.tulip_graph.getStringProperty("post_body")
+                edgeProperties["post_body"][e] = qr[5]['body']
+                edgeProperties["pid"] = self.tulip_graph.getIntegerProperty("pid")
+                edgeProperties["pid"][e] = qr[5]['pid']
+                # comment
+                edgeProperties["comment_subject"] = self.tulip_graph.getStringProperty("comment_subject")
+                edgeProperties["comment_subject"][e] = qr[4]['subject']
+                edgeProperties["comment_body"] = self.tulip_graph.getStringProperty("comment_body")
+                edgeProperties["comment_body"][e] = qr[4]['comment']
+                edgeProperties["cid"] = self.tulip_graph.getIntegerProperty("cid")
+                edgeProperties["cid"][e] = qr[4]['cid']
 
-        # Get the resp edges
+        # Get the response edges
         print("Read Edges")
         result = self.neo4j_graph.run(resp_edges_req)
         for qr in result:
@@ -128,6 +140,20 @@ class CreateUserTlp(object):
                 edgeProperties["viewLabel"] = self.tulip_graph.getStringProperty("viewLabel")
                 edgeProperties["viewLabel"][e] = "REPLY"
                 labelEdgeTlp[e] = "REPLY"
+                # comment 1
+                edgeProperties["comment1_subject"] = self.tulip_graph.getStringProperty("comment1_subject")
+                edgeProperties["comment1_subject"][e] = qr[2]['subject']
+                edgeProperties["comment1_body"] = self.tulip_graph.getStringProperty("comment1_body")
+                edgeProperties["comment1_body"][e] = qr[2]['comment']
+                edgeProperties["cid1"] = self.tulip_graph.getIntegerProperty("cid1")
+                edgeProperties["cid1"][e] = qr[2]['cid']
+                # comment 2
+                edgeProperties["comment2_subject"] = self.tulip_graph.getStringProperty("comment2_subject")
+                edgeProperties["comment2_subject"][e] = qr[3]['subject']
+                edgeProperties["comment2_body"] = self.tulip_graph.getStringProperty("comment2_body")
+                edgeProperties["comment2_body"][e] = qr[3]['comment']
+                edgeProperties["cid2"] = self.tulip_graph.getIntegerProperty("cid2")
+                edgeProperties["cid2"][e] = qr[3]['cid']
 
         print("Export")
         tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], "usersToUsers"))

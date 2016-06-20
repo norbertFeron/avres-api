@@ -16,7 +16,7 @@ class CreateFullTlp(object):
         self.tulip_graph.setName('opencare')
         # todo pass in parameters labels and colors
         self.labels = ["title", "subject", "name"]
-        self.colors = {"uid": tlp.Color(0, 0, 255), "pid": tlp.Color(0, 255, 0), "cid": tlp.Color(255, 0, 0)}
+        self.colors = {"uid": tlp.Color(0, 0, 255), "pid": tlp.Color(0, 255, 0), "cid": tlp.Color(255, 100, 0)}
 
     # -----------------------------------------------------------
     # the updateVisualization(centerViews = True) function can be called
