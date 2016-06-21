@@ -7,6 +7,9 @@ from routes.comment.comment_routes import add_comment_routes
 from routes.post.post_routes import add_post_routes
 from routes.tulipr.tulip_routes import add_tulip_routes
 from update_database import Update, HardUpdate
+from graphtulip.createfulltlp import CreateFullTlp
+from graphtulip.createusertlp import CreateUserTlp
+
 
 config = configparser.ConfigParser()
 config.read("config.ini")
@@ -24,9 +27,17 @@ add_post_routes(api)
 add_comment_routes(api)
 add_tulip_routes(api)
 
-# todo remove temporary route
+# todo create update route with json file upload
 api.add_resource(Update, '/update')
 api.add_resource(HardUpdate, '/hardUpdate')
+
+# Todo uncomment for final version
+# # Create complete graph
+# creatorFull = CreateFullTlp()
+# creatorFull.create()
+# # Create user graph
+# creatorUser = CreateUserTlp()
+# creatorUser.create()
 
 if __name__ == '__main__':
     app.run(host=config['api']['host'],
