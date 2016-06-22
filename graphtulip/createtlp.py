@@ -106,15 +106,56 @@ class CreateTlp(object):
             self.createEdges(edges_req)
 
             # GOOD RESULT BUT GREEDY
-        # Search for connection between nodes
-        if len(params) > 1:
-            for nodeActual in self.indexNodes:
-                for nodeOther in self.indexNodes:
-                    edges_req = "MATCH (n1)-[e]->(n2) "
-                    edges_req += "WHERE ID(n1) = %s " % nodeActual
-                    edges_req += "AND ID(n2) = %s " % nodeOther
-                    edges_req += "RETURN ID(e),ID(n1),ID(n2),n2,e"
-                    self.createEdges(edges_req)
+        # # Search for connection between nodes
+        # if len(params) > 1:
+        #     for nodeActual in self.indexNodes:
+        #         for nodeOther in self.indexNodes:
+        #             edges_req = "MATCH (n1)-[e]->(n2) "
+        #             edges_req += "WHERE ID(n1) = %s " % nodeActual
+        #             edges_req += "AND ID(n2) = %s " % nodeOther
+        #             edges_req += "RETURN ID(e),ID(n1),ID(n2),n2,e"
+        #             self.createEdges(edges_req)
+
+        print("Export")
+        tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], graph_id))
+
+    def createWithout(self, types, graph_id):
+
+        # Prepare node request
+        node_req = "MATCH (n) "
+        node_req += "WHERE NOT (n:%s) " % types[0]
+        for type in types[1:]:
+            node_req += "AND NOT (n:%s) " % type
+        node_req += "AND NOT (n:Day) "
+        node_req += "AND NOT (n:Month) "
+        node_req += "AND NOT (n:Year) "
+        node_req += "AND NOT (n:TimeTreeRoot) "
+        node_req += "AND NOT (n:group_id) "
+        node_req += "RETURN ID(n),n"
+
+        print(node_req)
+        # Get the nodes of Neo4J
+        self.createNodes(node_req)
+
+        # Request edges
+        edges_req = "MATCH (n1)-[e]->(n2) "
+        edges_req += "WHERE NOT (n1)-[e:CREATED_ON]-(n2) "
+        edges_req += "AND NOT (n1)-[e:POST_ON]-(n2) "
+        edges_req += "AND NOT (n1)-[e:GROUP_IS]-(n2) "
+        edges_req += "AND NOT (n1:%s) " % types[0]
+        for type in types[1:]:
+            edges_req += "AND NOT (n1:%s) " % type
+        edges_req += "AND NOT (n1:Day) "
+        edges_req += "AND NOT (n1:Month) "
+        edges_req += "AND NOT (n1:Year) "
+        edges_req += "AND NOT (n1:TimeTreeRoot) "
+        edges_req += "AND NOT (n1:group_id) "
+        edges_req += "RETURN ID(e),ID(n1),ID(n2),n2,e"
+
+        print(edges_req)
+        # Get the edges of Neo4J
+        print("Read Edges")
+        self.createEdges(edges_req)
 
         print("Export")
         tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], graph_id))

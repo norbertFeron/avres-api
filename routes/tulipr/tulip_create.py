@@ -32,6 +32,16 @@ class CreateGraph(Resource):
         return makeResponse([graph_id.urn[9:]])
 
 
+class CreateGraphWithout(Resource):
+    def get(self):
+        graph_id = uuid.uuid4()
+        creator = CreateTlp()
+        parser.add_argument('type', action='append')
+        args = parser.parse_args()
+        creator.createWithout(args['type'], graph_id)
+        return makeResponse([graph_id.urn[9:]])
+
+
 class CreateGraphWithParams(Resource):
     def get(self):
         graph_id = uuid.uuid4()

@@ -66,6 +66,8 @@ class ImportFromJson(object):
                 user_node['twitter'] = user_fields['Twitter_URL']
             if user_fields['Real_name']:
                 user_node['real_name'] = user_fields['Real_name']
+            if user_fields['Created_date']:
+                user_node['timestamp'] = int(time.mktime(datetime.strptime(user_fields['Created_date'], "%A, %B %d, %Y - %H:%M").timetuple())* 1000)
             self.neo4j_graph.merge(user_node)
 
             # Add relation
@@ -106,6 +108,8 @@ class ImportFromJson(object):
                 post_node['body'] = post_fields['Body']
             if post_fields['Group']:
                 post_node['group'] = post_fields['Group']
+            if post_fields['Post date']:
+                post_node['timestamp'] = int(time.mktime(datetime.strptime(post_fields['Post date'][:-13], "%a, %Y-%m-%d %H:%M").timetuple()) * 1000)
             self.neo4j_graph.merge(post_node)
 
             # Add relation
@@ -137,8 +141,7 @@ class ImportFromJson(object):
 
             # TimeTree
             if post_fields['Post date']:
-                timestamp = int(time.mktime(
-                    datetime.strptime(post_fields['Post date'][:-13], "%a, %Y-%m-%d %H:%M").timetuple()) * 1000)
+                timestamp = int(time.mktime(datetime.strptime(post_fields['Post date'][:-13], "%a, %Y-%m-%d %H:%M").timetuple()) * 1000)
                 req = "MATCH (p:post { pid : %d }) WITH p " % post_node['pid']
                 req += "CALL ga.timetree.events.attach({node: p, time: %s, relationshipType: 'POST_ON'}) " % timestamp
                 req += "YIELD node RETURN p"
@@ -156,6 +159,8 @@ class ImportFromJson(object):
                 comment_node['subject'] = comment_fields['subject']
             if comment_fields['Comment']:
                 comment_node['comment'] = comment_fields['Comment']
+            if comment_fields['Post date']:
+                comment_node['timestamp'] = int(time.mktime(datetime.strptime(comment_fields['Post date'], "%A, %B %d, %Y - %H:%M").timetuple()) * 1000)
             self.neo4j_graph.merge(comment_node)
 
             # Add relation

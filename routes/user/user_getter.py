@@ -38,7 +38,7 @@ class GetUserHydrate(Resource):
             return makeResponse("ERROR : Cannot find post with pid: %d" % user_id, 204)
         user['posts'] = posts
         user['comments'] = comments
-        return makeResponse(user, 200)
+        return makeResponse([user], 200)
 
 
 class GetUsers(Resource):
