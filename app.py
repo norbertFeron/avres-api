@@ -9,6 +9,7 @@ from routes.tulipr.tulip_routes import add_tulip_routes
 from update_database import Update, HardUpdate
 from graphtulip.createfulltlp import CreateFullTlp
 from graphtulip.createusertlp import CreateUserTlp
+from graphtulip.createtlp import CreateTlp
 
 
 config = configparser.ConfigParser()
@@ -38,6 +39,9 @@ api.add_resource(HardUpdate, '/hardUpdate')
 # # Create user graph
 # creatorUser = CreateUserTlp()
 # creatorUser.create()
+# # Create commentAndPost graph
+# creator = CreateTlp()
+# creator.createWithout(["user"], "commentAndPost")
 
 if __name__ == '__main__':
     app.run(host=config['api']['host'],

@@ -22,6 +22,12 @@ class CreateUserGraph(Resource):
         creator.create()
         return True
 
+class CreateGraphWithoutUser(Resource):
+    def get(self):
+        creator = CreateTlp()
+        creator.createWithout(["user"], "commentAndPost")
+        return makeResponse(["commentAndPost"])
+
 
 class CreateGraph(Resource):
     def get(self, field, value):

@@ -1,13 +1,16 @@
-from routes.tulipr.tulip_create import CreateGraph, CreateFullGraph, CreateUserGraph, CreateGraphWithParams, CreateGraphWithout
+from routes.tulipr.tulip_create import *
 from routes.tulipr.tulip_layout import GetLayoutAlgorithm, DrawCompleteGraph, DrawGraph
 from routes.tulipr.tulip_compute import ComputeDOI, ComputeUserDOI
 
 
 def add_tulip_routes(api):
 
-    # Create
+    # Create (static)
     api.add_resource(CreateFullGraph, '/createFullGraph')
     api.add_resource(CreateUserGraph, '/createUserGraph')
+    api.add_resource(CreateGraphWithoutUser, '/createCommentAndPostGraph')
+
+    # Create
     api.add_resource(CreateGraph, '/createGraph/<string:field>/<int:value>')
     api.add_resource(CreateGraphWithParams, '/createGraph')
     api.add_resource(CreateGraphWithout, '/createGraphWithout')
