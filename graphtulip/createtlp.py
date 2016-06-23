@@ -26,7 +26,7 @@ class CreateTlp(object):
 
         # todo pass in parameters labels and colors
         self.labels = ["title", "subject", "name"]
-        self.colors = {"uid": tlp.Color(0, 0, 255), "pid": tlp.Color(0, 255, 0), "cid": tlp.Color(255, 100, 0)}
+        self.colors = {"uid": tlp.Color(0, 0, 255), "pid": tlp.Color(0, 255, 0), "cid": tlp.Color(255, 100, 0),  "edges": tlp.Color(204, 204, 204)}
 
     def managePropertiesEntity(self, entTlp, entN4J, entProperties):
         for i in entN4J.properties:
@@ -84,6 +84,8 @@ class CreateTlp(object):
             # manageLabelEdge(self.labelEdgeTlp,e,qr[3])
             self.edgeProperties["viewLabel"] = self.tulip_graph.getStringProperty("viewLabel")
             self.edgeProperties["viewLabel"][e] = qr[4].type()
+            self.edgeProperties["viewColor"] = self.tulip_graph.getColorProperty("viewColor")
+            self.edgeProperties["viewColor"][e] = self.colors['edges']
             self.labelEdgeTlp[e] = qr[4].type()
             self.tmpIDEdge[e] = qr[0]
 

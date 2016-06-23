@@ -16,7 +16,7 @@ class CreateFullTlp(object):
         self.tulip_graph.setName('opencare')
         # todo pass in parameters labels and colors
         self.labels = ["title", "subject", "name"]
-        self.colors = {"uid": tlp.Color(0, 0, 255), "pid": tlp.Color(0, 255, 0), "cid": tlp.Color(255, 100, 0)}
+        self.colors = {"uid": tlp.Color(0, 0, 255), "pid": tlp.Color(0, 255, 0), "cid": tlp.Color(255, 100, 0),  "edges": tlp.Color(204, 204, 204)}
 
     # -----------------------------------------------------------
     # the updateVisualization(centerViews = True) function can be called
@@ -143,6 +143,8 @@ class CreateFullTlp(object):
                 # manageLabelEdge(labelEdgeTlp,e,qr[3])
                 edgeProperties["viewLabel"] = self.tulip_graph.getStringProperty("viewLabel")
                 edgeProperties["viewLabel"][e] = qr[4].type()
+                edgeProperties["viewColor"] = self.tulip_graph.getColorProperty("viewColor")
+                edgeProperties["viewColor"][e] = self.colors['edges']
                 labelEdgeTlp[e] = qr[4].type()
                 tmpIDEdge[e] = qr[0]
 
