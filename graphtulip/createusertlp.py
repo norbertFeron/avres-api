@@ -114,6 +114,8 @@ class CreateUserTlp(object):
                 edgeProperties["viewLabel"] = self.tulip_graph.getStringProperty("viewLabel")
                 edgeProperties["viewLabel"][e] = "COMMENTS"
                 labelEdgeTlp[e] = "COMMENTS"
+                edgeProperties["type"] = self.tulip_graph.getStringProperty("type")
+                edgeProperties["type"][e] = "curvedArrow"
                 # post
                 edgeProperties["post_title"] = self.tulip_graph.getStringProperty("post_title")
                 edgeProperties["post_title"][e] = qr[5]['title']
@@ -131,6 +133,7 @@ class CreateUserTlp(object):
                 edgeProperties["viewColor"] = self.tulip_graph.getColorProperty("viewColor")
                 edgeProperties["viewColor"][e] = self.colors['edges']
 
+
         # Get the response edges
         print("Read Edges")
         result = self.neo4j_graph.run(resp_edges_req)
@@ -142,6 +145,8 @@ class CreateUserTlp(object):
                 edgeProperties["viewLabel"] = self.tulip_graph.getStringProperty("viewLabel")
                 edgeProperties["viewLabel"][e] = "REPLY"
                 labelEdgeTlp[e] = "REPLY"
+                edgeProperties["type"] = self.tulip_graph.getStringProperty("type")
+                edgeProperties["type"][e] = "curvedArrow"
                 # comment 1
                 edgeProperties["comment1_subject"] = self.tulip_graph.getStringProperty("comment1_subject")
                 edgeProperties["comment1_subject"][e] = qr[2]['subject']

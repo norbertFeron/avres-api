@@ -42,7 +42,7 @@ class GetPostHydrate(Resource): # todo comments on comments (with author)
             return "ERROR : Cannot find post with pid: %d" % post_id, 200
         post['comments'] = comments
         post['author'] = author
-        return makeResponse(post, 200)
+        return makeResponse([post], 200)
 
 
 class GetPosts(Resource):

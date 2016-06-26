@@ -16,26 +16,33 @@ class GetUser(Resource):
 
 class GetUserHydrate(Resource):
     def get(self, user_id):
+        req = "MATCH (find:user {uid: %d}) RETURN find" % user_id
+        result = neo4j.query_neo4j(req)
+        user = result.single()['find'].properties
+
         req = "MATCH (find:user {uid: %d})" % user_id
-        req += "OPTIONAL MATCH (find)-[:AUTHORSHIP]->(p:post)"
-        req += "OPTIONAL MATCH (find)-[:AUTHORSHIP]->(c:comment)"
-        req += "RETURN find, p, c"
+        req += " OPTIONAL MATCH (find)-[:AUTHORSHIP]->(p:post)"
+        req += " OPTIONAL MATCH (find)-[:AUTHORSHIP]->(c:comment)"
+        req += ' RETURN p, c'
         result = neo4j.query_neo4j(req)
         posts = []
+        posts_id = []
+        comments_id = []
         comments = []
         for record in result:
-            user = record['find'].properties
             try:
-                if record['p']:
+                if record['p'] and record['p'].properties['pid'] not in posts_id:
                     posts.append(record['p'].properties)
-                if record['c']:
+                    posts_id.append(record['p'].properties['pid'])
+                if record['c'] and record['c'].properties['cid'] not in comments_id:
+                    comments_id.append(record['c'].properties['cid'])
                     comments.append(record['c'].properties)
             except KeyError:
                 pass
         try:
             user
         except NameError:
-            return makeResponse("ERROR : Cannot find post with pid: %d" % user_id, 204)
+            return makeResponse("ERROR : Cannot find user with uid: %d" % user_id, 204)
         user['posts'] = posts
         user['comments'] = comments
         return makeResponse([user], 200)

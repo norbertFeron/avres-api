@@ -47,9 +47,7 @@ class ExportSigma(tlp.ExportModule):
                         .replace("\t", "\\t")
                     os << '"%s":"%s", ' % (prop.getName(), value)
             # sigma id
-            os << '"id":"%s", ' % edge.id
-            # todo manage different type and colors of edge
-            os << '"type": "curvedArrow"'
+            os << '"id":"%s" ' % edge.id
             os << ' }'
         os << '], '
 

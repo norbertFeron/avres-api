@@ -18,37 +18,40 @@ class GetCommentHydrate(Resource):
     def get(self, comment_id):
         req = "MATCH (find:comment {cid: %d}) " % comment_id
         req += "OPTIONAL MATCH (find)<-[:AUTHORSHIP]-(author:user) "
-        req += "OPTIONAL MATCH (find)<-[:COMMENTS]-(otherComment:comment) "
-        req += "OPTIONAL MATCH (otherComment)<-[:AUTHORSHIP]-(otherCommentAuthor:user) "
-        req += "RETURN find, author, otherComment, otherCommentAuthor"
+        req += "OPTIONAL MATCH (find)-[:COMMENTS]->(post:post) "
+        req += "RETURN find, author.uid AS author_id, author.name AS author_name, post.pid AS post_id, post.title AS post_title"
         result = neo4j.query_neo4j(req)
-        comments = []
-        author = None
-        other_comment = None
+        author = {}
+        post = {}
         for record in result:
+            print(record)
             comment = record['find'].properties
             try:
-                if record['author']:
-                    author = record['author'].properties
+                if record['author_id']:
+                    author['uid'] = record['author_id']
             except KeyError:
                 pass
             try:
-                if record['otherComment']:
-                    other_comment = record['otherComment'].properties
-                    try:
-                        if record['otherCommentAuthor']:
-                            other_comment['author'] = record['otherCommentAuthor'].properties
-                    except KeyError:
-                        pass
-                    comments.append(other_comment)
+                if record['author_name']:
+                    author['name'] = record['author_name']
+            except KeyError:
+                pass
+            try:
+                if record['post_id']:
+                    post['pid'] = record['post_id']
+            except KeyError:
+                pass
+            try:
+                if record['post_title']:
+                    post['title'] = record['post_title']
             except KeyError:
                 pass
         try:
             comment
         except NameError:
             return "ERROR : Cannot find post with pid: %d" % comment_id, 200
-        comment['comments'] = comments
         comment['author'] = author
+        comment['post'] = post
         return makeResponse([comment], 200)
 
 

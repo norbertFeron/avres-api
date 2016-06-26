@@ -86,6 +86,8 @@ class CreateTlp(object):
             self.edgeProperties["viewLabel"][e] = qr[4].type()
             self.edgeProperties["viewColor"] = self.tulip_graph.getColorProperty("viewColor")
             self.edgeProperties["viewColor"][e] = self.colors['edges']
+            self.edgeProperties["type"] = self.tulip_graph.getStringProperty("type")
+            self.edgeProperties["type"][e] = "curvedArrow"
             self.labelEdgeTlp[e] = qr[4].type()
             self.tmpIDEdge[e] = qr[0]
 
