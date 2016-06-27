@@ -16,29 +16,51 @@ class GetUser(Resource):
 
 class GetUserHydrate(Resource):
     def get(self, user_id):
+        # Get user properties
         req = "MATCH (find:user {uid: %d}) RETURN find" % user_id
         result = neo4j.query_neo4j(req)
         user = result.single()['find'].properties
-
+        # Get user's posts
         req = "MATCH (find:user {uid: %d})" % user_id
-        req += " OPTIONAL MATCH (find)-[:AUTHORSHIP]->(p:post)"
-        req += " OPTIONAL MATCH (find)-[:AUTHORSHIP]->(c:comment)"
-        req += ' RETURN p, c'
+        req += " MATCH (find)-[:AUTHORSHIP]->(p:post)"
+        req += ' RETURN p.pid AS p_id, p.title AS p_title, p.timestamp AS p_time'
         result = neo4j.query_neo4j(req)
         posts = []
         posts_id = []
-        comments_id = []
-        comments = []
+
         for record in result:
             try:
-                if record['p'] and record['p'].properties['pid'] not in posts_id:
-                    posts.append(record['p'].properties)
-                    posts_id.append(record['p'].properties['pid'])
-                if record['c'] and record['c'].properties['cid'] not in comments_id:
-                    comments_id.append(record['c'].properties['cid'])
-                    comments.append(record['c'].properties)
+                if record['p_id'] and record['p_id'] not in posts_id:
+                    post = {}
+                    post['pid'] = record['p_id']
+                    post['title'] = record['p_title']
+                    post['timestamp'] = record['p_time']
+                    posts.append(post)
+                    posts_id.append(post['pid'])
             except KeyError:
                 pass
+        # Get user's comments
+        req = "MATCH (find:user {uid: %d})" % user_id
+        req += " MATCH (find)-[:AUTHORSHIP]->(c:comment)"
+        req += " OPTIONAL MATCH (c)-[:COMMENTS]->(p:post)"
+        req += ' RETURN c.cid AS c_id, c.subject AS c_subject, c.timestamp AS c_time, p.pid AS parent_id'
+        result = neo4j.query_neo4j(req)
+        comments_id = []
+        comments = []
+
+        for record in result:
+            try:
+                if record['c_id'] and record['c_id'] not in comments_id:
+                    comment = {}
+                    comment['cid'] = record['c_id']
+                    comment['subject'] = record['c_subject']
+                    comment['timestamp'] = record['c_time']
+                    comment['parent_id'] = record['parent_id']
+                    comments.append(comment)
+                    comments_id.append(comment['cid'])
+            except KeyError:
+                pass
+
         try:
             user
         except NameError:

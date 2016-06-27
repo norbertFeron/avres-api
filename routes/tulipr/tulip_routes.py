@@ -1,6 +1,6 @@
 from routes.tulipr.tulip_create import *
 from routes.tulipr.tulip_layout import GetLayoutAlgorithm, DrawCompleteGraph, DrawGraph
-from routes.tulipr.tulip_compute import ComputeDOI, ComputeUserDOI
+from routes.tulipr.tulip_compute import ComputeDOI, ComputeUserDOI, ComputeSearchDOI
 
 
 def add_tulip_routes(api):
@@ -22,4 +22,5 @@ def add_tulip_routes(api):
 
     # Compute
     api.add_resource(ComputeDOI, '/doi/<string:type>/<int:id>')
+    api.add_resource(ComputeSearchDOI, '/doi/<string:graph>/<string:type>/<int:id>')
     api.add_resource(ComputeUserDOI, '/users/doi/<string:type>/<int:id>')

@@ -48,7 +48,7 @@ class DOIContext(object):
         for n in self.original_graph.getNodes():
             self.DOI_metric[n] = self.API_metric[n] + self.UI_metric[n] - dist[n]
 
-    def compute_context_subgraph(self, focus_node, max_size=20):
+    def compute_context_subgraph(self, focus_node, max_size):
         color = self.original_graph.getColorProperty('viewColor')
         # color.setAllNodeValue(tlp.Color(0, 64, 64))
         self.compute_DOI(focus_node)
@@ -69,7 +69,7 @@ class DOIContext(object):
         return context_subgraph
 
 
-def create(start_graph ,graph_id, node_type, node_id):
+def create(start_graph, graph_id, node_type, node_id, max_size=20):
     graph = tlp.loadGraph("%s%s.tlp" % (config['exporter']['tlp_path'], start_graph))
     doi = DOIContext(graph)
 
@@ -86,5 +86,5 @@ def create(start_graph ,graph_id, node_type, node_id):
     # f = doi.get_focus_node()
     f = doi.get_node(node_type, node_id)
     doi.compute_DOI(f)
-    context_subgraph = doi.compute_context_subgraph(f)
+    context_subgraph = doi.compute_context_subgraph(f, max_size)
     tlp.saveGraph(context_subgraph, "%s%s.tlp" % (config['exporter']['tlp_path'], graph_id))
