@@ -24,7 +24,6 @@ class GetCommentHydrate(Resource):
         author = {}
         post = {}
         for record in result:
-            print(record)
             comment = record['find'].properties
             try:
                 if record['author_id']:

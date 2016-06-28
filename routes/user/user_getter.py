@@ -79,4 +79,3 @@ class GetUsers(Resource):
         for record in result:
             users.append(record['find'].properties)
         return makeResponse(users, 200)
-
