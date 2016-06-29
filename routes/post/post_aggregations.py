@@ -31,9 +31,9 @@ class CountPostsByTimestamp(Resource):
         req = "MATCH (n:post) RETURN n.timestamp AS timestamp ORDER BY timestamp ASC"
         req += addargs()
         result = neo4j.query_neo4j(req)
-        users = []
+        posts = []
         count = 1
         for record in result:
-            users.append({"count": count, "timestamp": record['timestamp']})
+            posts.append({"count": count, "timestamp": record['timestamp']})
             count += 1
-        return makeResponse(users, 200)
+        return makeResponse(posts, 200)

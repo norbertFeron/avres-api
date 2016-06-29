@@ -16,5 +16,7 @@ def add_comment_routes(api):
     # Count
     api.add_resource(CountAllComments, '/comments/count/')
     api.add_resource(CountCommentsByAuthor, '/comments/count/author/<int:author_id>')
+    api.add_resource(CountCommentsByTimestamp, '/comments/count/timestamp')
+
 
 
