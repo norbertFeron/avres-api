@@ -1,7 +1,7 @@
 from flask_restful import Resource, reqparse
 from neo4j.v1 import ResultError
 from connector import neo4j
-from routes.utils import addargs, makeResponse
+from routes.utils import addargs, addTimeFilter, makeResponse
 
 parser = reqparse.RequestParser()
 
@@ -80,19 +80,22 @@ class GetPostsByAuthor(Resource):
 
 class GetPostType(Resource):
     def get(self):
-        params = []
         parser.add_argument('uid', action='append')
         args = parser.parse_args()
 
         if args['uid']:
             req = "MATCH (n:post_type)<-[r:TYPE_IS]-(p:post) "
+            req += addTimeFilter()
             for user in args['uid']:
                 req += "OPTIONAL MATCH (n)<-[r%s:TYPE_IS]-(p:post)<-[]-(u%s:user {uid: %s}) " % (user, user, user)
             req += "RETURN n, count(r) AS nb_posts"
             for user in args['uid']:
                 req += ", count(r%s) AS u%s_posts" % (user, user)
         else:
-            req = "MATCH (n:post_type)<-[r:TYPE_IS]-(p:post)  RETURN n, count(r) AS nb_posts"
+            req = "MATCH (n:post_type)<-[r:TYPE_IS]-(p:post) "
+            req += addTimeFilter()
+            req += "RETURN n, count(r) AS nb_posts"
+        print(req)
         result = neo4j.query_neo4j(req)
         labels = []
         data = [[]]

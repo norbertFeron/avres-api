@@ -6,6 +6,8 @@ import sys
 parser = reqparse.RequestParser()
 parser.add_argument('limit')
 parser.add_argument('orderBy')
+parser.add_argument('start')
+parser.add_argument('end')
 
 
 def addlimit():
@@ -31,6 +33,18 @@ def addorderby():
 def addargs():
     req = addorderby()
     req += addlimit()
+    return req
+
+
+def addTimeFilter():
+    args = parser.parse_args()
+    req = ''
+    if args['start']:
+        req += "WHERE %s <= p.timestamp " % args['start']
+    if args['start'] and args['end']:
+        req += "AND %s >= p.timestamp " % args['end']
+    if not args['start'] and args['end']:
+        req += "WHERE %s >= p.timestamp " % args['end']
     return req
 
 

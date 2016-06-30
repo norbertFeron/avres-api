@@ -8,8 +8,8 @@ parser = reqparse.RequestParser()
 
 class CountUsersByTimestamp(Resource):
     def get(self):
-        req = "MATCH (n:user) RETURN n.timestamp AS timestamp ORDER BY timestamp ASC"
-        req += addargs()
+        req = "MATCH (n:user) "
+        req += "RETURN n.timestamp AS timestamp ORDER BY timestamp ASC"
         result = neo4j.query_neo4j(req)
         users = []
         count = 1
