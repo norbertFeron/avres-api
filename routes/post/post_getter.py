@@ -106,7 +106,7 @@ class GetPostType(Resource):
             labels.append(record['n'].properties['name'])
             data[0].append(record['nb_posts'])
             if args['uid']:
-                count = 1;
+                count = 1
                 for user in args['uid']:
                     data[count].append(record['u%s_posts' % user])
                     count += 1
