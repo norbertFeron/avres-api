@@ -47,12 +47,12 @@ class GetPostHydrate(Resource): # todo comments on comments (with author)
 
 class GetPosts(Resource):
     def get(self):
-        req = "MATCH (find:post) RETURN find"
+        req = "MATCH (p:post) RETURN p.pid AS pid, p.title AS title"
         req += addargs()
         result = neo4j.query_neo4j(req)
         posts = []
         for record in result:
-            posts.append(record['find'].properties)
+            posts.append({'pid': record['pid'], "title": record['title']})
         return makeResponse(posts, 200)
 
 

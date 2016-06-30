@@ -56,12 +56,12 @@ class GetCommentHydrate(Resource):
 
 class GetComments(Resource):
     def get(self):
-        req = "MATCH (find:comment) RETURN find"
+        req = "MATCH (c:comment) RETURN c.cid AS cid, c.subject AS subject"
         req += addargs()
         result = neo4j.query_neo4j(req)
         comments = []
         for record in result:
-            comments.append(record['find'].properties)
+            comments.append({'cid': record['cid'], "subject": record['subject']})
         return makeResponse(comments, 200)
 
 

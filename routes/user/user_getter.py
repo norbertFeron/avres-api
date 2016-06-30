@@ -72,10 +72,10 @@ class GetUserHydrate(Resource):
 
 class GetUsers(Resource):
     def get(self):
-        req = "MATCH (find:user) RETURN find"
+        req = "MATCH (n:user) RETURN n.uid AS uid, n.name AS name"
         req += addargs()
         result = neo4j.query_neo4j(req)
         users = []
         for record in result:
-            users.append(record['find'].properties)
+            users.append({'uid': record['uid'], "name": record['name']})
         return makeResponse(users, 200)
