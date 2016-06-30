@@ -5,10 +5,11 @@ from routes.tulipr.tulip_compute import ComputeDOI, ComputeUserDOI, ComputeSearc
 
 def add_tulip_routes(api):
 
-    # Create (static)
-    api.add_resource(CreateFullGraph, '/createFullGraph')
-    api.add_resource(CreateUserGraph, '/createUserGraph')
-    api.add_resource(CreateGraphWithoutUser, '/createCommentAndPostGraph')
+    # Generate
+    api.add_resource(GenerateFullGraph, '/generateFullGraph')
+    api.add_resource(GenerateUserGraph, '/generateUserGraph')
+    api.add_resource(GenerateGraphWithoutUser, '/generateCommentAndPostGraph')
+    api.add_resource(GenerateGraphs, '/generateGraphs')
 
     # Create
     api.add_resource(CreateGraph, '/createGraph/<string:field>/<int:value>')

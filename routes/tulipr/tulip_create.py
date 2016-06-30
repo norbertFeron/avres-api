@@ -4,29 +4,48 @@ from routes.utils import makeResponse
 from graphtulip.createtlp import CreateTlp
 from graphtulip.createfulltlp import CreateFullTlp
 from graphtulip.createusertlp import CreateUserTlp
-from graphtulip.degreeOfInterest import DOIContext
 
 parser = reqparse.RequestParser()
 
+# Graph generate once
 
-class CreateFullGraph(Resource):
+
+class GenerateFullGraph(Resource):
     def get(self):
         creator = CreateFullTlp()
         creator.create()
-        return True
+        return makeResponse(True)
 
 
-class CreateUserGraph(Resource):
+class GenerateUserGraph(Resource):
     def get(self):
         creator = CreateUserTlp()
         creator.create()
-        return True
+        return makeResponse(True)
 
-class CreateGraphWithoutUser(Resource):
+
+class GenerateGraphWithoutUser(Resource):
     def get(self):
         creator = CreateTlp()
         creator.createWithout(["user"], "commentAndPost")
-        return makeResponse(["commentAndPost"])
+        return makeResponse(True)
+
+
+class GenerateGraphs(Resource):
+    def get(self):
+        # Full graph
+        creator = CreateFullTlp()
+        creator.create()
+        # User Graph
+        creator = CreateUserTlp()
+        creator.create()
+        # Comment And Post Graph
+        creator = CreateTlp()
+        creator.createWithout(["user"], "commentAndPost")
+        return makeResponse(True)
+
+
+# Create new graph
 
 
 class CreateGraph(Resource):
