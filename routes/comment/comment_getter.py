@@ -78,7 +78,7 @@ class GetCommentsByAuthor(Resource):
 
 class GetCommentsOnPost(Resource):
     def get(self, post_id):
-        req = "MATCH (c:comment)-[:COMMENTS]->(post:post { nid: %d}) RETURN c" % post_id # todo restructure maybe change nid
+        req = "MATCH (c:comment)-[:COMMENTS]->(post:post { pid: %d}) RETURN c" % post_id
         req += addargs()
         result = neo4j.query_neo4j(req)
         comments = []

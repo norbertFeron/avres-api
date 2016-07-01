@@ -6,7 +6,7 @@ from routes.user.user_routes import add_user_routes
 from routes.comment.comment_routes import add_comment_routes
 from routes.post.post_routes import add_post_routes
 from routes.tulipr.tulip_routes import add_tulip_routes
-from update_database import Update, HardUpdate
+from routes.settings.settings_routes import add_settings_routes
 from graphtulip.createfulltlp import CreateFullTlp
 from graphtulip.createusertlp import CreateUserTlp
 from graphtulip.createtlp import CreateTlp
@@ -27,10 +27,7 @@ add_user_routes(api)
 add_post_routes(api)
 add_comment_routes(api)
 add_tulip_routes(api)
-
-# todo create update route with json file upload
-api.add_resource(Update, '/update')
-api.add_resource(HardUpdate, '/hardUpdate')
+add_settings_routes(api)
 
 # Todo uncomment for final version
 # # Create complete graph

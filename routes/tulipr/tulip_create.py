@@ -14,21 +14,21 @@ class GenerateFullGraph(Resource):
     def get(self):
         creator = CreateFullTlp()
         creator.create()
-        return makeResponse(True)
+        return makeResponse([True])
 
 
 class GenerateUserGraph(Resource):
     def get(self):
         creator = CreateUserTlp()
         creator.create()
-        return makeResponse(True)
+        return makeResponse([True])
 
 
 class GenerateGraphWithoutUser(Resource):
     def get(self):
         creator = CreateTlp()
         creator.createWithout(["user"], "commentAndPost")
-        return makeResponse(True)
+        return makeResponse([True])
 
 
 class GenerateGraphs(Resource):
@@ -42,7 +42,7 @@ class GenerateGraphs(Resource):
         # Comment And Post Graph
         creator = CreateTlp()
         creator.createWithout(["user"], "commentAndPost")
-        return makeResponse(True)
+        return makeResponse([True])
 
 
 # Create new graph
