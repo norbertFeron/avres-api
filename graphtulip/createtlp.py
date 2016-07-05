@@ -91,7 +91,7 @@ class CreateTlp(object):
             self.labelEdgeTlp[e] = qr[4].type()
             self.tmpIDEdge[e] = qr[0]
 
-    def createWithParams(self, params, graph_id):
+    def createWithParams(self, params, private_gid):
         # create nodes pass in params
         for param in params:
             field, value = param
@@ -121,9 +121,9 @@ class CreateTlp(object):
         #             self.createEdges(edges_req)
 
         print("Export")
-        tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], graph_id))
+        tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], private_gid))
 
-    def createWithout(self, types, graph_id):
+    def createWithout(self, types, private_gid):
 
         # Prepare node request
         node_req = "MATCH (n) "
@@ -137,7 +137,6 @@ class CreateTlp(object):
         node_req += "AND NOT (n:group_id) "
         node_req += "RETURN ID(n),n"
 
-        print(node_req)
         # Get the nodes of Neo4J
         self.createNodes(node_req)
 
@@ -156,10 +155,9 @@ class CreateTlp(object):
         edges_req += "AND NOT (n1:group_id) "
         edges_req += "RETURN ID(e),ID(n1),ID(n2),n2,e"
 
-        print(edges_req)
         # Get the edges of Neo4J
         print("Read Edges")
         self.createEdges(edges_req)
 
         print("Export")
-        tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], graph_id))
+        tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], private_gid))

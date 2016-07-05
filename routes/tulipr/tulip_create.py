@@ -11,37 +11,61 @@ parser = reqparse.RequestParser()
 
 
 class GenerateFullGraph(Resource):
+    def __init__(self, **kwargs):
+        self.gid_stack = kwargs['gid_stack']
+
     def get(self):
+        private_gid = uuid.uuid4().urn[9:]
         creator = CreateFullTlp()
-        creator.create()
+        creator.create(private_gid)
+        self.gid_stack.update({"complete": private_gid})
         return makeResponse(True)
 
 
 class GenerateUserGraph(Resource):
+    def __init__(self, **kwargs):
+        self.gid_stack = kwargs['gid_stack']
+
     def get(self):
+        private_gid = uuid.uuid4().urn[9:]
         creator = CreateUserTlp()
-        creator.create()
+        creator.create(private_gid)
+        self.gid_stack.update({"complete": private_gid})
         return makeResponse(True)
 
 
 class GenerateGraphWithoutUser(Resource):
+    def __init__(self, **kwargs):
+        self.gid_stack = kwargs['gid_stack']
+
     def get(self):
+        private_gid = uuid.uuid4().urn[9:]
         creator = CreateTlp()
-        creator.createWithout(["user"], "commentAndPost")
+        creator.createWithout(["user"], private_gid)
+        self.gid_stack.update({"complete": private_gid})
         return makeResponse(True)
 
 
 class GenerateGraphs(Resource):
+    def __init__(self, **kwargs):
+        self.gid_stack = kwargs['gid_stack']
+
     def get(self):
         # Full graph
         creator = CreateFullTlp()
-        creator.create()
+        complete_gid = uuid.uuid4().urn[9:]
+        creator.create(complete_gid)
+        self.gid_stack.update({"complete": complete_gid})
         # User Graph
         creator = CreateUserTlp()
-        creator.create()
+        users_gid = uuid.uuid4().urn[9:]
+        creator.create(users_gid)
+        self.gid_stack.update({"usersToUsers": users_gid})
         # Comment And Post Graph
         creator = CreateTlp()
-        creator.createWithout(["user"], "commentAndPost")
+        commentPost_gid = uuid.uuid4().urn[9:]
+        creator.createWithout(["user"], commentPost_gid)
+        self.gid_stack.update({"commentAndPost": commentPost_gid})
         return makeResponse(True)
 
 
@@ -49,27 +73,41 @@ class GenerateGraphs(Resource):
 
 
 class CreateGraph(Resource):
+    def __init__(self, **kwargs):
+        self.gid_stack = kwargs['gid_stack']
+
     def get(self, field, value):
-        graph_id = uuid.uuid4()
+        public_gid = uuid.uuid4().urn[9:]
+        private_gid = uuid.uuid4().urn[9:]
         creator = CreateTlp()
         params = [(field, value)]
-        creator.createWithParams(params, graph_id)
-        return makeResponse({'gid': graph_id.urn[9:]})
+        creator.createWithParams(params, private_gid)
+        self.gid_stack.update({public_gid: private_gid})
+        return makeResponse({'gid': public_gid})
 
 
 class CreateGraphWithout(Resource):
+    def __init__(self, **kwargs):
+        self.gid_stack = kwargs['gid_stack']
+
     def get(self):
-        graph_id = uuid.uuid4()
+        public_gid = uuid.uuid4().urn[9:]
+        private_gid = uuid.uuid4().urn[9:]
         creator = CreateTlp()
         parser.add_argument('type', action='append')
         args = parser.parse_args()
-        creator.createWithout(args['type'], graph_id)
-        return makeResponse({'gid': graph_id.urn[9:]})
+        creator.createWithout(args['type'], private_gid)
+        self.gid_stack.update({public_gid: private_gid})
+        return makeResponse({'gid': public_gid})
 
 
 class CreateGraphWithParams(Resource):
+    def __init__(self, **kwargs):
+        self.gid_stack = kwargs['gid_stack']
+
     def get(self):
-        graph_id = uuid.uuid4()
+        public_gid = uuid.uuid4().urn[9:]
+        private_gid = uuid.uuid4().urn[9:]
         creator = CreateTlp()
         parser.add_argument('uid', action='append')
         parser.add_argument('pid', action='append')
@@ -85,5 +123,6 @@ class CreateGraphWithParams(Resource):
         if args['cid']:
             for comment in args['cid']:
                 params.append(('cid', comment))
-        creator.createWithParams(params, graph_id)
-        return makeResponse({'gid': graph_id.urn[9:]})
+        creator.createWithParams(params, private_gid)
+        self.gid_stack.update({public_gid: private_gid})
+        return makeResponse({'gid': public_gid})

@@ -72,7 +72,7 @@ class CreateUserTlp(object):
     # 	strNul = "testNul"
     # 	exec(strNul)[node] = 1
 
-    def create(self):
+    def create(self, private_gid):
         # Entities properties
         tmpIDNode = self.tulip_graph.getIntegerProperty("tmpIDNode")
         tmpIDEdge = self.tulip_graph.getIntegerProperty("tmpIDEdge")
@@ -165,6 +165,6 @@ class CreateUserTlp(object):
                 edgeProperties["viewColor"][e] = self.colors['edges']
 
         print("Export")
-        tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], "usersToUsers"))
+        tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], private_gid))
 
 

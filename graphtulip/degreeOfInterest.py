@@ -69,7 +69,7 @@ class DOIContext(object):
         return context_subgraph
 
 
-def create(start_graph, graph_id, node_type, node_id, max_size=20):
+def create(start_graph, private_gid, node_type, node_id, max_size=20):
     graph = tlp.loadGraph("%s%s.tlp" % (config['exporter']['tlp_path'], start_graph))
     doi = DOIContext(graph)
 
@@ -87,4 +87,4 @@ def create(start_graph, graph_id, node_type, node_id, max_size=20):
     f = doi.get_node(node_type, node_id)
     doi.compute_DOI(f)
     context_subgraph = doi.compute_context_subgraph(f, max_size)
-    tlp.saveGraph(context_subgraph, "%s%s.tlp" % (config['exporter']['tlp_path'], graph_id))
+    tlp.saveGraph(context_subgraph, "%s%s.tlp" % (config['exporter']['tlp_path'], private_gid))

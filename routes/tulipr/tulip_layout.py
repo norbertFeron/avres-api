@@ -1,5 +1,6 @@
 import configparser
 import os
+import tempfile
 
 from flask_restful import Resource, reqparse
 from routes.utils import makeResponse
@@ -17,13 +18,16 @@ class GetLayoutAlgorithm(Resource):
 
 
 class DrawGraph(Resource):
-    def get(self, graph_id, layout):
-        # check if the graph exist
-        # todo change to a database with id -> filePath for security
-        if not os.path.isfile("%s%s.tlp" % (config['exporter']['tlp_path'], graph_id)):
-            return makeResponse("Unknow graph id : %s" % graph_id)
-        tulip_graph = tlp.loadGraph("%s%s.tlp" % (config['exporter']['tlp_path'], graph_id))
+    def __init__(self, **kwargs):
+        self.gid_stack = kwargs['gid_stack']
+
+    def get(self, public_gid, layout):
+        print(self.gid_stack)
+        private_gid = self.gid_stack[public_gid]
+        if not os.path.isfile("%s%s.tlp" % (config['exporter']['tlp_path'], private_gid)):
+            return makeResponse("Unknow graph id : %s" % public_gid)
+        tulip_graph = tlp.loadGraph("%s%s.tlp" % (config['exporter']['tlp_path'], private_gid))
         tulip_graph.applyLayoutAlgorithm(layout)
-        path = "%s%s.json" % (config['exporter']['json_path'], graph_id)
-        tlp.exportGraph("SIGMA JSON Export", tulip_graph, path)
-        return makeResponse(path, 200, True)
+        path = tempfile.mkstemp()
+        tlp.exportGraph("SIGMA JSON Export", tulip_graph, path[1])
+        return makeResponse(path[1], 200, True)

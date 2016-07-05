@@ -7,6 +7,7 @@ from routes.comment.comment_routes import add_comment_routes
 from routes.post.post_routes import add_post_routes
 from routes.tulipr.tulip_routes import add_tulip_routes
 from routes.settings.settings_routes import add_settings_routes
+
 from graphtulip.createfulltlp import CreateFullTlp
 from graphtulip.createusertlp import CreateUserTlp
 from graphtulip.createtlp import CreateTlp
@@ -17,8 +18,6 @@ config.read("config.ini")
 
 if not os.path.exists(config['exporter']['tlp_path']):
     os.makedirs(config['exporter']['tlp_path'])
-if not os.path.exists(config['exporter']['json_path']):
-    os.makedirs(config['exporter']['json_path'])
 
 app = Flask(__name__)
 api = Api(app)

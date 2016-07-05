@@ -1,6 +1,7 @@
+import configparser
+import uuid
 from tulip import *
 from py2neo import *
-import configparser
 
 config = configparser.ConfigParser()
 config.read("config.ini")
@@ -71,7 +72,7 @@ class CreateFullTlp(object):
     # 	strNul = "testNul"
     # 	exec(strNul)[node] = 1
 
-    def create(self):
+    def create(self, private_gid):
         # View properties
         viewBorderColor = self.tulip_graph.getColorProperty("viewBorderColor")
         viewBorderWidth = self.tulip_graph.getDoubleProperty("viewBorderWidth")
@@ -149,6 +150,5 @@ class CreateFullTlp(object):
                 tmpIDEdge[e] = qr[0]
 
         print("Export")
-        tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], "complete"))
-
+        tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], private_gid))
 
