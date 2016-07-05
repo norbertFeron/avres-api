@@ -26,7 +26,7 @@ class CreateTlp(object):
 
         # todo pass in parameters labels and colors
         self.labels = ["title", "subject", "name"]
-        self.colors = {"uid": tlp.Color(0, 0, 255), "pid": tlp.Color(0, 255, 0), "cid": tlp.Color(255, 100, 0),  "edges": tlp.Color(204, 204, 204)}
+        self.colors = {"uid": tlp.Color(51,122,183), "pid": tlp.Color(92,184,92), "cid": tlp.Color(240, 173, 78),  "edges": tlp.Color(204, 204, 204)}
 
     def managePropertiesEntity(self, entTlp, entN4J, entProperties):
         for i in entN4J.properties:
