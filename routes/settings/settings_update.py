@@ -17,7 +17,7 @@ class Info(Resource):
         except ResultError:
             return makeResponse("ERROR : Cannot load latest timestamp", 204)
 
-        return makeResponse([response], 200)
+        return makeResponse(response, 200)
 
 
 class Update(Resource):
@@ -26,7 +26,7 @@ class Update(Resource):
         importer.create_users()
         importer.create_posts()
         importer.create_comments()
-        return makeResponse([importer.end_import()], 200)
+        return makeResponse(importer.end_import(), 200)
 
 
 class HardUpdate(Resource):
@@ -35,5 +35,4 @@ class HardUpdate(Resource):
         importer.create_users()
         importer.create_posts()
         importer.create_comments()
-        importer.end_import()
-        return makeResponse([importer.end_import()], 200)
+        return makeResponse(importer.end_import(), 200)

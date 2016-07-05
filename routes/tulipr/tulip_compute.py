@@ -15,4 +15,4 @@ class ComputeDOI(Resource):
             create(graph, graph_id, type, id, args['max_size'])
         else:
             create(graph, graph_id, type, id)
-        return makeResponse([graph_id.urn[9:]])
+        return makeResponse({'gid': graph_id.urn[9:]})

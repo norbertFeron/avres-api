@@ -11,7 +11,7 @@ class CountAllComments(Resource):
         req = "MATCH (:comment) RETURN count(*) AS nb_comments"
         result = neo4j.query_neo4j(req)
         try:
-            return makeResponse([result.single()['nb_comments']], 200)
+            return makeResponse(result.single()['nb_comments'], 200)
         except ResultError:
             return makeResponse("ERROR", 500)
 
@@ -21,7 +21,7 @@ class CountCommentsByAuthor(Resource):
         req = "MATCH (author:user {uid : %d})-[:AUTHORSHIP]->(c:comment) RETURN count(*) AS nb_comments" % author_id
         result = neo4j.query_neo4j(req)
         try:
-            return makeResponse([result.single()['nb_comments']], 200)
+            return makeResponse(result.single()['nb_comments'], 200)
         except ResultError:
             return makeResponse("ERROR", 500)
 

@@ -9,7 +9,7 @@ class GetPost(Resource):
     def get(self, post_id):
         result = neo4j.query_neo4j("MATCH (find:post {pid: %d}) RETURN find" % post_id)
         try:
-            return makeResponse([result.single()['find'].properties], 200)
+            return makeResponse(result.single()['find'].properties, 200)
         except ResultError:
             return makeResponse("ERROR : Cannot find post with pid: %d" % post_id, 204)
 
@@ -42,7 +42,7 @@ class GetPostHydrate(Resource): # todo comments on comments (with author)
             return "ERROR : Cannot find post with pid: %d" % post_id, 200
         post['comments'] = comments
         post['author'] = author
-        return makeResponse([post], 200)
+        return makeResponse(post, 200)
 
 
 class GetPosts(Resource):
@@ -95,7 +95,6 @@ class GetPostType(Resource):
             req = "MATCH (n:post_type)<-[r:TYPE_IS]-(p:post) "
             req += addTimeFilter()
             req += "RETURN n, count(r) AS nb_posts"
-        print(req)
         result = neo4j.query_neo4j(req)
         labels = []
         data = [[]]
@@ -110,4 +109,4 @@ class GetPostType(Resource):
                 for user in args['uid']:
                     data[count].append(record['u%s_posts' % user])
                     count += 1
-        return makeResponse([{'labels': labels, 'data': data}], 200)
+        return makeResponse({'labels': labels, 'data': data}, 200)

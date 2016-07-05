@@ -9,7 +9,7 @@ class GetComment(Resource):
         req = "MATCH (find:comment {cid: %d}) RETURN find" % comment_id
         result = neo4j.query_neo4j(req)
         try:
-            return makeResponse([result.single()['find'].properties], 200)
+            return makeResponse(result.single()['find'].properties, 200)
         except ResultError:
             return makeResponse("ERROR : Cannot find comment with cid: %d" % comment_id, 204)
 
@@ -51,7 +51,7 @@ class GetCommentHydrate(Resource):
             return "ERROR : Cannot find post with pid: %d" % comment_id, 200
         comment['author'] = author
         comment['post'] = post
-        return makeResponse([comment], 200)
+        return makeResponse(comment, 200)
 
 
 class GetComments(Resource):

@@ -14,21 +14,21 @@ class GenerateFullGraph(Resource):
     def get(self):
         creator = CreateFullTlp()
         creator.create()
-        return makeResponse([True])
+        return makeResponse(True)
 
 
 class GenerateUserGraph(Resource):
     def get(self):
         creator = CreateUserTlp()
         creator.create()
-        return makeResponse([True])
+        return makeResponse(True)
 
 
 class GenerateGraphWithoutUser(Resource):
     def get(self):
         creator = CreateTlp()
         creator.createWithout(["user"], "commentAndPost")
-        return makeResponse([True])
+        return makeResponse(True)
 
 
 class GenerateGraphs(Resource):
@@ -42,7 +42,7 @@ class GenerateGraphs(Resource):
         # Comment And Post Graph
         creator = CreateTlp()
         creator.createWithout(["user"], "commentAndPost")
-        return makeResponse([True])
+        return makeResponse(True)
 
 
 # Create new graph
@@ -54,7 +54,7 @@ class CreateGraph(Resource):
         creator = CreateTlp()
         params = [(field, value)]
         creator.createWithParams(params, graph_id)
-        return makeResponse([graph_id.urn[9:]])
+        return makeResponse({'gid': graph_id.urn[9:]})
 
 
 class CreateGraphWithout(Resource):
@@ -64,7 +64,7 @@ class CreateGraphWithout(Resource):
         parser.add_argument('type', action='append')
         args = parser.parse_args()
         creator.createWithout(args['type'], graph_id)
-        return makeResponse([graph_id.urn[9:]])
+        return makeResponse({'gid': graph_id.urn[9:]})
 
 
 class CreateGraphWithParams(Resource):
@@ -85,6 +85,5 @@ class CreateGraphWithParams(Resource):
         if args['cid']:
             for comment in args['cid']:
                 params.append(('cid', comment))
-        print(params)
         creator.createWithParams(params, graph_id)
-        return makeResponse([graph_id.urn[9:]])
+        return makeResponse({'gid': graph_id.urn[9:]})

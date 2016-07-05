@@ -11,7 +11,7 @@ class CountAllPost(Resource):
         req = "MATCH (:post) RETURN count(*) AS nb_posts"
         result = neo4j.query_neo4j(req)
         try:
-            return makeResponse([result.single()['nb_posts']], 200)
+            return makeResponse(result.single()['nb_posts'], 200)
         except ResultError:
             return makeResponse("ERROR", 500)
 
@@ -21,7 +21,7 @@ class CountPostByAuthor(Resource):
         req = "MATCH (author:user {uid : %d})-[:AUTHORSHIP]->(:post) RETURN count(*) AS nb_posts" % author_id
         result = neo4j.query_neo4j(req)
         try:
-            return makeResponse([result.single()['nb_posts']], 200)
+            return makeResponse(result.single()['nb_posts'], 200)
         except ResultError:
             return makeResponse("ERROR", 500)
 

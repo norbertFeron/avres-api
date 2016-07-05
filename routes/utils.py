@@ -50,7 +50,7 @@ def addTimeFilter():
 
 def makeResponse(result, code=200, file=False):
     if file:
-        result = [json.load(open(result, 'r', encoding="utf-8"))]
+        result = json.load(open(result, 'r', encoding="utf-8"))
     result = json.dumps(result)
     response = make_response(result, code)
     response.headers.add('Access-Control-Allow-Origin', '*')
