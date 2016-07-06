@@ -38,3 +38,13 @@ docker build -t graph-ryder-api .
 ```
 docker run -d -p 5000:5000 --name my-graph-ryder-api graph-ryder-api
 ```
+
+## Generate static graphs
+- via web browser
+```
+http://localhost:5000/generateGraphs
+```
+- via graph-ryder-dashboard settings / Generate Graphs
+```
+http://localhost:9000/#/dashboard/settings
+```
