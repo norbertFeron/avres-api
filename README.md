@@ -13,7 +13,11 @@ nano config.ini
 ```
 pip install -r requirements.txt
 ```
-3. launch api server
+3. include Export Sigma Plugin
+```
+cp exportsigma.py /usr/local/lib/python3.5/site-packages/tulip/native/plugins/exportsigma.py
+```
+4. launch api server
 ```
 python app.py
 ```
@@ -23,6 +27,7 @@ python app.py
 ```
 FROM python:3-onbuild
 EXPOSE 5000
+COPY exportsigma.py /usr/local/lib/python3.5/site-packages/tulip/native/plugins/exportsigma.py
 CMD [ "python", "./app.py" ]
 ```
 3. build
