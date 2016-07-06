@@ -2,6 +2,7 @@ import uuid
 from flask_restful import Resource, reqparse
 from routes.utils import makeResponse
 from graphtulip.degreeOfInterest import create
+from routes.tulipr.tulip_create import checkTlpFiles
 
 parser = reqparse.RequestParser()
 
@@ -20,5 +21,6 @@ class ComputeDOI(Resource):
             create(private_source, private_gid, type, id, args['max_size'])
         else:
             create(private_source, private_gid, type, id)
+        checkTlpFiles(self.gid_stack)
         self.gid_stack.update({public_gid: private_gid})
         return makeResponse({'gid': public_gid})

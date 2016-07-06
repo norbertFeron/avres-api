@@ -22,7 +22,6 @@ class DrawGraph(Resource):
         self.gid_stack = kwargs['gid_stack']
 
     def get(self, public_gid, layout):
-        print(self.gid_stack)
         private_gid = self.gid_stack[public_gid]
         if not os.path.isfile("%s%s.tlp" % (config['exporter']['tlp_path'], private_gid)):
             return makeResponse("Unknow graph id : %s" % public_gid)

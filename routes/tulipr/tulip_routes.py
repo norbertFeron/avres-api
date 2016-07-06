@@ -1,3 +1,4 @@
+import glob
 from routes.tulipr.tulip_create import *
 from routes.tulipr.tulip_layout import GetLayoutAlgorithm, DrawGraph
 from routes.tulipr.tulip_compute import ComputeDOI
@@ -6,7 +7,15 @@ from routes.tulipr.tulip_compute import ComputeDOI
 
 def add_tulip_routes(api):
 
+    # object use to stock {public_gid: private_gid} graph id
     gid_stack = {}
+    # clean tlp folder
+    files = glob.glob("%s*" % config['exporter']['tlp_path'])
+    for f in files:
+        os.remove(f)
+    # Generate all graphs
+    generator = GenerateGraphs(**{'gid_stack': gid_stack })
+    generator.get(False)
 
     # Generate
     api.add_resource(GenerateFullGraph, '/generateFullGraph', resource_class_kwargs={'gid_stack': gid_stack })
