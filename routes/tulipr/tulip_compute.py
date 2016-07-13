@@ -1,4 +1,5 @@
 import uuid
+import time
 from flask_restful import Resource, reqparse
 from routes.utils import makeResponse
 from graphtulip.degreeOfInterest import create
@@ -15,7 +16,7 @@ class ComputeDOI(Resource):
         private_source = self.gid_stack[graph]
         parser.add_argument('max_size', type=int)
         args = parser.parse_args()
-        public_gid = uuid.uuid4().urn[9:]
+        public_gid = repr(int(time.time())) + uuid.uuid4().urn[19:]
         private_gid = uuid.uuid4().urn[9:]
         if args['max_size']:
             create(private_source, private_gid, type, id, args['max_size'])

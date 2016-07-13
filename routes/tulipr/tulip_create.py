@@ -96,7 +96,8 @@ class CreateGraph(Resource):
         self.gid_stack = kwargs['gid_stack']
 
     def get(self, field, value):
-        public_gid = int(time.time())
+        public_gid = int(time.time()) + uuid.uuid4().urn[19:]
+        print(public_gid)
         private_gid = uuid.uuid4().urn[9:]
         creator = CreateTlp()
         params = [(field, value)]
@@ -156,5 +157,11 @@ def checkTlpFiles(gid_stack):
         keys.pop('complete')
         keys.pop('usersToUsers')
         keys.pop('commentAndPost')
-        priv = gid_stack.pop(min(keys, key=keys.get))
+        min = 9999999999
+        min_key = None
+        for key in keys:
+            if int(key[0:10]) < min:
+                min_key = key
+                min = int(key[0:10])
+        priv = gid_stack.pop(min_key)
         os.remove('%s%s.tlp' % (config['exporter']['tlp_path'], priv))
