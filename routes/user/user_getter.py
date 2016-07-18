@@ -5,6 +5,15 @@ from routes.utils import addargs, makeResponse
 
 
 class GetUser(Resource):
+    """
+    @api {get} /user/:id Single user information
+    @apiName GetUser
+    @apiGroup User
+
+    @apiParam {Number} id User unique ID.
+
+    @apiSuccess {Json} object The user.
+    """
     def get(self, user_id):
         req = "MATCH (find:user {uid: %d}) RETURN find" % user_id
         result = neo4j.query_neo4j(req)
@@ -15,6 +24,16 @@ class GetUser(Resource):
 
 
 class GetUserHydrate(Resource):
+    """
+    @api {get} /user/hydrate/:id Single user information + posts/comments
+    @apiName GetUserHydrate
+    @apiGroup User
+    @apiDescription Get user info and his comments/posts list (only cid/pid, title and timestamp)
+
+    @apiParam {Number} id User unique ID.
+
+    @apiSuccess {Json} object The user.
+    """
     def get(self, user_id):
         # Get user properties
         req = "MATCH (find:user {uid: %d}) RETURN find" % user_id
@@ -71,6 +90,17 @@ class GetUserHydrate(Resource):
 
 
 class GetUsers(Resource):
+    """
+    @api {get} /users/?limit=:limit&orderBy:order Users lists
+    @apiName GetUsers
+    @apiGroup User
+    @apiDescription Get all users
+
+    @apiParam {Number} [limit] Array size limit
+    @apiParam {String} [order=uid:desc] "field:[desc|asc]"
+
+    @apiSuccess {Json} array Users list.
+    """
     def get(self):
         req = "MATCH (n:user) RETURN n.uid AS uid, n.name AS name"
         req += addargs()
