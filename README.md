@@ -48,3 +48,13 @@ http://localhost:5000/generateGraphs
 ```
 http://localhost:9000/#/dashboard/settings
 ```
+
+### Generate the apidoc
+- install apidoc
+```
+npm install apidoc -g
+```
+- generate the doc
+```
+apidoc -i ./routes/ -o ./routes/apidoc/
+```
