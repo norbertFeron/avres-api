@@ -14,7 +14,7 @@ class UploadUsersFile(Resource):
     def post(self):
         args = parser.parse_args()
         print(args)
-        args['file'].save("%s" % config['importer']['json_users_path'])
+        # args['file'].save("%s" % config['importer']['json_users_path'])
         return makeResponse(True, 200)
 
     def options(self):
