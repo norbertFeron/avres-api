@@ -48,7 +48,7 @@ class CountCommentsByTimestamp(Resource):
     """
     @api {get} /comments/count/timestamp Count comments by time
     @apiName CountCommentsByTimestamp
-    @apiGroup Comments
+    @apiGroup Comment
     @apiDescription Count all comments by timestamp
 
     @apiSuccess {Number} timestamp Timestamp of a step.
