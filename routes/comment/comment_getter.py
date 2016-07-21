@@ -5,6 +5,15 @@ from routes.utils import addargs, makeResponse
 
 
 class GetComment(Resource):
+    """
+    @api {get} /comment/:id Get comment
+    @apiName GetComment
+    @apiGroup Comment
+
+    @apiParam {Number} id Comment unique ID.
+
+    @apiSuccess {Json} object The comment.
+    """
     def get(self, comment_id):
         req = "MATCH (find:comment {cid: %d}) RETURN find" % comment_id
         result = neo4j.query_neo4j(req)
@@ -55,6 +64,17 @@ class GetCommentHydrate(Resource):
 
 
 class GetComments(Resource):
+    """
+    @api {get} /comments/?limit=:limit&orderBy:order Get comments
+    @apiName GetComments
+    @apiGroup Comment
+    @apiDescription Get all comments
+
+    @apiParam {Number} [limit] Array size limit
+    @apiParam {String} [order=uid:desc] "field:[desc|asc]"
+
+    @apiSuccess {Json} array Comments list.
+    """
     def get(self):
         req = "MATCH (c:comment) RETURN c.cid AS cid, c.subject AS subject"
         req += addargs()

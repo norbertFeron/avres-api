@@ -8,7 +8,7 @@ parser = reqparse.RequestParser()
 
 class CountUsersByTimestamp(Resource):
     """
-    @api {get} /users/count/timestamp?start=:start&end=:end Count users
+    @api {get} /users/count/timestamp Count users by time
     @apiName CountUsersByTimestamp
     @apiGroup User
     @apiDescription Count all users by timestamp

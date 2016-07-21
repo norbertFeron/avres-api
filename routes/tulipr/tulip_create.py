@@ -17,6 +17,14 @@ parser = reqparse.RequestParser()
 
 
 class GenerateFullGraph(Resource):
+    """
+    @api {get} /generateFullGraph Generate complete graph
+    @apiName GenerateFullGraph
+    @apiGroup Tulip
+    @apiDescription Generate the full graph 'complete'
+
+    @apiSuccess {Boolean} True or False.
+    """
     def __init__(self, **kwargs):
         self.gid_stack = kwargs['gid_stack']
 
@@ -31,6 +39,14 @@ class GenerateFullGraph(Resource):
 
 
 class GenerateUserGraph(Resource):
+    """
+    @api {get} /generateUserGraph Generate usersToUsers graph
+    @apiName GenerateUserGraph
+    @apiGroup Tulip
+    @apiDescription Generate the users graph
+
+    @apiSuccess {Boolean} True or False.
+    """
     def __init__(self, **kwargs):
         self.gid_stack = kwargs['gid_stack']
 
@@ -45,6 +61,14 @@ class GenerateUserGraph(Resource):
 
 
 class GenerateGraphWithoutUser(Resource):
+    """
+    @api {get} /generateCommentAndPostGraph Generate commentsAndPosts graph
+    @apiName GenerateGraphWithoutUser
+    @apiGroup Tulip
+    @apiDescription Generate the commentsAndPosts graph
+
+    @apiSuccess {Boolean} True or False.
+    """
     def __init__(self, **kwargs):
         self.gid_stack = kwargs['gid_stack']
 
@@ -59,6 +83,14 @@ class GenerateGraphWithoutUser(Resource):
 
 
 class GenerateGraphs(Resource):
+    """
+    @api {get} /generateGraphs Generate static graphs
+    @apiName generateGraphs
+    @apiGroup Tulip
+    @apiDescription Generate the 3 static graphs
+
+    @apiSuccess {Boolean} True or False.
+    """
     def __init__(self, **kwargs):
         self.gid_stack = kwargs['gid_stack']
 
@@ -92,6 +124,17 @@ class GenerateGraphs(Resource):
 
 
 class CreateGraph(Resource):
+    """
+    @api {get} /createGraph/:field/:value Create a Graph
+    @apiName CreateGraph
+    @apiGroup Tulip
+    @apiDescription Create a graph from type and id
+
+    @apiParam {String} field target type 'uid', 'pid', 'cid'.
+    @apiParam {Number} id target ID.
+
+    @apiSuccess {Json} The graph in json format.
+    """
     def __init__(self, **kwargs):
         self.gid_stack = kwargs['gid_stack']
 
@@ -108,6 +151,16 @@ class CreateGraph(Resource):
 
 
 class CreateGraphWithout(Resource):
+    """
+    @api {get} /createGraphWithout?type=:type Create a Graph
+    @apiName CreateGraphWithout
+    @apiGroup Tulip
+    @apiDescription Create a graph without given types
+
+    @apiParam {String} type arrays of forbidden type
+
+    @apiSuccess {Json} The graph in json format.
+    """
     def __init__(self, **kwargs):
         self.gid_stack = kwargs['gid_stack']
 
@@ -124,6 +177,18 @@ class CreateGraphWithout(Resource):
 
 
 class CreateGraphWithParams(Resource):
+    """
+    @api {get} /createGraph?uid=:uid&pid=:pid&cid=:cid Create a Graph with params
+    @apiName CreateGraphWithout
+    @apiGroup Tulip
+    @apiDescription Create a graph with params
+
+    @apiParam {Number} [uid] arrays of user id
+    @apiParam {Number} [pid] arrays of post id
+    @apiParam {Number} [cid] arrays of comment id
+
+    @apiSuccess {Json} The graph in json format.
+    """
     def __init__(self, **kwargs):
         self.gid_stack = kwargs['gid_stack']
 
