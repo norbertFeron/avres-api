@@ -6,6 +6,9 @@ This is a simple Rest full Api to interact with neo4j database and query opencar
 cp config.example.ini config.ini
 nano config.ini
 ```
+Neo4j database need the following graphAware plugins:
+- [graphaware-timetree-3.0.1.38.24.jar](http://products.graphaware.com/download/timetree/graphaware-timetree-3.0.1.38.24.jar)
+- [graphaware-server-community-all-3.0.1.38.jar](http://products.graphaware.com/download/framework-server-community/graphaware-server-community-all-3.0.1.38.jar)
 If you launch neo4j in a container name it with an alias
 ```
 [neo4j]
