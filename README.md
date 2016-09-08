@@ -6,7 +6,7 @@ This is a simple Rest full Api to interact with neo4j database and query opencar
 cp config.example.ini config.ini
 nano config.ini
 ```
-If you launch neo4j in a container call it with an alias
+If you launch neo4j in a container name it with an alias
 ```
 [neo4j]
 url = myNeo4j
