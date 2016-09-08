@@ -6,7 +6,13 @@ This is a simple Rest full Api to interact with neo4j database and query opencar
 cp config.example.ini config.ini
 nano config.ini
 ```
-
+If you launch neo4j in a container call it with an alias
+```
+[neo4j]
+url = myNeo4j
+user = user
+password = pass
+```
 ## Local Installation
 ####2. install requirements
 ```
@@ -30,7 +36,10 @@ docker build -t graph-ryder-api .
 ```
 docker run -d -p 5000:5000 --name my-graph-ryder-api graph-ryder-api
 ```
-
+If you launch neo4j in a container you have to link it with '--link' option
+```
+--link neo4jContainerName:myNeo4j
+```
 ## Post install
 ### Update database
 - via web browser
