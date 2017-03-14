@@ -44,9 +44,9 @@ class CreateFullTlp(object):
                     tmpValue = "%s %s %s ..." % (word[0], word[1], word[2])
                 entProperties["viewLabel"] = self.tulip_graph.getStringProperty("viewLabel")
                 entProperties["viewLabel"][entTlp] = tmpValue
-            if i in self.colors.keys():
-                entProperties["viewColor"] = self.tulip_graph.getColorProperty("viewColor")
-                entProperties["viewColor"][entTlp] = self.colors.get(i)
+            # if i in self.colors.keys():
+            #     entProperties["viewColor"] = self.tulip_graph.getColorProperty("viewColor")
+            #     entProperties["viewColor"][entTlp] = self.colors.get(i)
             if i in entProperties:
                 entProperties[i][entTlp] = tmpValue
             else:

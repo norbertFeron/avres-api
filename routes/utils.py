@@ -1,7 +1,6 @@
 from flask_restful import reqparse
 from flask import make_response
 import json
-import sys
 
 parser = reqparse.RequestParser()
 parser.add_argument('limit')
@@ -58,3 +57,4 @@ def makeResponse(result, code=200, file=False):
     response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
     response.headers.add('Content-Type', 'application/json')
     return response
+

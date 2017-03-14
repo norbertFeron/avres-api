@@ -14,19 +14,13 @@ def add_tulip_routes(api):
     for f in files:
         os.remove(f)
     # Generate all graphs
-    generator = GenerateGraphs(**{'gid_stack': gid_stack })
-    generator.get(False)
+    # generator = GenerateGraphs(**{'gid_stack': gid_stack })
+    # generator.get(False)
 
     # Generate
     api.add_resource(GenerateFullGraph, '/generateFullGraph', resource_class_kwargs={'gid_stack': gid_stack })
-    api.add_resource(GenerateUserGraph, '/generateUserGraph', resource_class_kwargs={'gid_stack': gid_stack })
-    api.add_resource(GenerateGraphWithoutUser, '/generateCommentAndPostGraph', resource_class_kwargs={'gid_stack': gid_stack })
-    api.add_resource(GenerateGraphs, '/generateGraphs', resource_class_kwargs={'gid_stack': gid_stack })
-
     # Create
     api.add_resource(CreateGraph, '/createGraph/<string:field>/<int:value>', resource_class_kwargs={'gid_stack': gid_stack })
-    api.add_resource(CreateGraphWithParams, '/createGraph', resource_class_kwargs={'gid_stack': gid_stack })
-    api.add_resource(CreateGraphWithout, '/createGraphWithout', resource_class_kwargs={'gid_stack': gid_stack })
 
     # Layout
     api.add_resource(GetLayoutAlgorithm, '/layoutAlgorithm')

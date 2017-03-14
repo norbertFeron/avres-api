@@ -1,6 +1,5 @@
 import psutil
-from flask_restful import Resource, reqparse
-from importer.importFromJson import ImportFromJson
+from flask_restful import Resource
 from routes.utils import makeResponse
 from neo4j.v1 import ResultError
 from connector import neo4j
@@ -18,21 +17,3 @@ class Info(Resource):
             return makeResponse("ERROR : Cannot load latest timestamp", 204)
 
         return makeResponse(response, 200)
-
-
-class Update(Resource):
-    def get(self):
-        importer = ImportFromJson(False)
-        importer.create_users()
-        importer.create_posts()
-        importer.create_comments()
-        return makeResponse(importer.end_import(), 200)
-
-
-class HardUpdate(Resource):
-    def get(self):
-        importer = ImportFromJson(True)
-        importer.create_users()
-        importer.create_posts()
-        importer.create_comments()
-        return makeResponse(importer.end_import(), 200)
