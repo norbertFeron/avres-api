@@ -27,5 +27,5 @@ def add_tulip_routes(api):
     api.add_resource(DrawGraph, '/draw/<string:public_gid>/<string:layout>', resource_class_kwargs={'gid_stack': gid_stack })
 
     # Compute
-    api.add_resource(ComputeDOI, '/doi/<string:graph>/<string:type>/<int:id>', resource_class_kwargs={'gid_stack': gid_stack })
+    api.add_resource(ComputeDOI, '/doi', resource_class_kwargs={'gid_stack': gid_stack })
 
