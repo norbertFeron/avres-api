@@ -17,9 +17,11 @@ class ExportSigma(tlp.ExportModule):
 
         # edges
         os << '{ "edges": ['
+        firstEdge = True
         for edge in self.graph.getEdges():
-            if edge.id == 0:
+            if firstEdge:
                 os << '{ '
+                firstEdge = False
             else:
                 os << ',{ '
             # edge properties
@@ -53,9 +55,11 @@ class ExportSigma(tlp.ExportModule):
 
         # nodes
         os << '"nodes": ['
+        firstNode = True;
         for node in self.graph.getNodes():
-            if node.id == 0:
+            if firstNode:
                 os << '{ '
+                firstNode = False
             else:
                 os << ',{ '
             for prop in self.graph.getObjectProperties():

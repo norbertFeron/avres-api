@@ -9,6 +9,10 @@ config.read("config.ini")
 
 # todo : connect to neo4j
 graph = tlp.loadGraph(config['importer']['doi_data'])
+# graph = tlp.loadGraph("data/blizaarDoi.tlp")
+# params = tlp.getDefaultPluginParameters('TLPB Export', graph)
+# tlp.exportGraph('TLPB Export', graph, "data/blizaarDoi.tlpb", params)
+
 
 # ---------------------------------------------------
 # return the API value for DOI computation
@@ -415,6 +419,7 @@ def create(private_gid, selection):
     distanceToFocus = graph.getDoubleProperty("distanceToFocus")
     distanceMax = graph.getDoubleProperty("distanceMax")
     scoreDOI = graph.getDoubleProperty("scoreDOI")
+    originalId = graph.getIntegerProperty("originalId")
 
     dicType = {}
     initialFocusNode = None
@@ -440,6 +445,7 @@ def create(private_gid, selection):
     # select the focus node
     print("Mode : " + chooseFocusWith.upper())
     for n in graph.getNodes():
+        originalId[n] = n.id
         if str(n.id) in list(selection.values()):
             isChosen[n] = True
             listIsChosen.append(n)
