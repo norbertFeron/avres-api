@@ -31,7 +31,7 @@ class ExportSigma(tlp.ExportModule):
                     colors = prop.getEdgeStringValue(edge)[1:][:-1].split(',')
                     os << '"color":"rgb(%s,%s,%s)", ' % (colors[0], colors[1], colors[2])
                 # edge label
-                elif prop.getName() == "viewLabel":
+                elif prop.getName() == "labelEdgeTlp":
                     if prop.getEdgeStringValue(edge):
                         label = prop.getEdgeStringValue(edge).replace('"', '\\\"')
                         os << '"label":"%s", ' % label
@@ -64,7 +64,7 @@ class ExportSigma(tlp.ExportModule):
                     colors = prop.getNodeStringValue(node)[1:].split(',')
                     os << '"color":"rgb(%s,%s,%s)", ' % (colors[0], colors[1], colors[2])
                 # node label
-                elif prop.getName() == "viewLabel":
+                elif prop.getName() == "name":
                     if prop.getNodeStringValue(node):
                         label = prop.getNodeStringValue(node).replace('"', '\\\"')
                         os << '"label":"%s", ' % label

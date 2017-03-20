@@ -23,9 +23,9 @@ class DrawGraph(Resource):
 
     def get(self, public_gid, layout):
         private_gid = self.gid_stack[public_gid]
-        if not os.path.isfile("%s%s.tlp" % (config['exporter']['tlp_path'], private_gid)):
+        if not os.path.isfile("%s%s.tlpb" % (config['exporter']['tlp_path'], private_gid)):
             return makeResponse("Unknow graph id : %s" % public_gid)
-        tulip_graph = tlp.loadGraph("%s%s.tlp" % (config['exporter']['tlp_path'], private_gid))
+        tulip_graph = tlp.loadGraph("%s%s.tlpb" % (config['exporter']['tlp_path'], private_gid))
         tulip_graph.applyLayoutAlgorithm(layout)
         path = tempfile.mkstemp()
         tlp.exportGraph("SIGMA JSON Export", tulip_graph, path[1])

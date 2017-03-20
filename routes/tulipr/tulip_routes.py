@@ -1,8 +1,12 @@
 import glob
-from routes.tulipr.tulip_create import *
+import os
+import configparser
+
 from routes.tulipr.tulip_layout import GetLayoutAlgorithm, DrawGraph
 from routes.tulipr.tulip_compute import ComputeDOI
 
+config = configparser.ConfigParser()
+config.read("config.ini")
 
 
 def add_tulip_routes(api):
@@ -13,14 +17,6 @@ def add_tulip_routes(api):
     files = glob.glob("%s*" % config['exporter']['tlp_path'])
     for f in files:
         os.remove(f)
-    # Generate all graphs
-    # generator = GenerateGraphs(**{'gid_stack': gid_stack })
-    # generator.get(False)
-
-    # Generate
-    api.add_resource(GenerateFullGraph, '/generateFullGraph', resource_class_kwargs={'gid_stack': gid_stack })
-    # Create
-    api.add_resource(CreateGraph, '/createGraph/<string:field>/<int:value>', resource_class_kwargs={'gid_stack': gid_stack })
 
     # Layout
     api.add_resource(GetLayoutAlgorithm, '/layoutAlgorithm')

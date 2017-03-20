@@ -8,7 +8,7 @@ config = configparser.ConfigParser()
 config.read("config.ini")
 
 # todo : connect to neo4j
-graph = tlp.loadGraph("data/blizaarDoi.tlp")
+graph = tlp.loadGraph(config['importer']['doi_data'])
 
 # ---------------------------------------------------
 # return the API value for DOI computation
@@ -491,9 +491,10 @@ def create(private_gid, selection):
         cmpt += 1
         print("--- " + str(int((cmpt / sizeMaxDOIGraph) * 100)) + "% ---")
 
-        context_subgraph = tlp.Graph.inducedSubGraph(graph, listNodesSubGraph)
+    context_subgraph = tlp.Graph.inducedSubGraph(graph, listNodesSubGraph)
 
     # Done
     end = time.time()
     print("Time(s) : " + str(end - start))
-    tlp.saveGraph(context_subgraph, "%s%s.tlp" % (config['exporter']['tlp_path'], private_gid))
+    params = tlp.getDefaultPluginParameters('TLPB Export', graph)
+    tlp.exportGraph('TLPB Export', context_subgraph, "%s%s.tlpb" % (config['exporter']['tlp_path'], private_gid), params)
