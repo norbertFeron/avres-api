@@ -22,11 +22,14 @@ class DrawGraph(Resource):
         self.gid_stack = kwargs['gid_stack']
 
     def get(self, public_gid, layout):
-        private_gid = self.gid_stack[public_gid]
-        if not os.path.isfile("%s%s.tlpb" % (config['exporter']['tlp_path'], private_gid)):
-            return makeResponse("Unknow graph id : %s" % public_gid)
-        tulip_graph = tlp.loadGraph("%s%s.tlpb" % (config['exporter']['tlp_path'], private_gid))
-        tulip_graph.applyLayoutAlgorithm(layout)
-        path = tempfile.mkstemp()
-        tlp.exportGraph("SIGMA JSON Export", tulip_graph, path[1])
-        return makeResponse(path[1], 200, True)
+        if public_gid == "doi":
+            return makeResponse(config['importer']['doi_data_json'], 200, True)
+        else:
+            private_gid = self.gid_stack[public_gid]
+            if not os.path.isfile("%s%s.tlpb" % (config['exporter']['tlp_path'], private_gid)):
+                return makeResponse("Unknow graph id : %s" % public_gid)
+            tulip_graph = tlp.loadGraph("%s%s.tlpb" % (config['exporter']['tlp_path'], private_gid))
+            tulip_graph.applyLayoutAlgorithm(layout)
+            path = tempfile.mkstemp()
+            tlp.exportGraph("SIGMA JSON Export", tulip_graph, path[1])
+            return makeResponse(path[1], 200, True)

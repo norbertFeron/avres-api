@@ -84,15 +84,17 @@ class ExportSigma(tlp.ExportModule):
                     coord = prop.getNodeStringValue(node)[1:-1].split(',')
                     os << '"x":%s, ' % coord[0]
                     os << '"y":%s, ' % (float(coord[1]) * (-1))
+                elif prop.getName() == "originalId":
+                    os << '"originalId":%s,' % prop.getNodeStringValue(node)
                 # other
-                elif prop.getNodeDefaultStringValue() != prop.getNodeStringValue(node) \
-                        and prop.getNodeStringValue(node):
-                    value = prop.getNodeStringValue(node)\
-                        .replace('"', '\\\"')\
-                        .replace("\n", "")\
-                        .replace("\r", "")\
-                        .replace("\t", "")
-                    os << '"%s":"%s", ' % (prop.getName(), value)
+                # elif prop.getNodeDefaultStringValue() != prop.getNodeStringValue(node) \
+                #         and prop.getNodeStringValue(node):
+                #     value = prop.getNodeStringValue(node)\
+                #         .replace('"', '\\\"')\
+                #         .replace("\n", "")\
+                #         .replace("\r", "")\
+                #         .replace("\t", "")
+                #     os << '"%s":"%s", ' % (prop.getName(), value)
                 # sigma id
             os << '"id":"%s"' % node.id
             os << ' }'

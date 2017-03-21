@@ -18,11 +18,11 @@ class ComputeDOI(Resource):
     def __init__(self, **kwargs):
         self.gid_stack = kwargs['gid_stack']
 
-    def get(self):
+    def get(self, size):
         selection = request.args.to_dict()
         public_gid = repr(int(time.time())) + uuid.uuid4().urn[19:]
         private_gid = uuid.uuid4().urn[9:]
-        create(private_gid, selection)
+        create(private_gid, selection, size)
         checkTlpFiles(self.gid_stack)
         self.gid_stack.update({public_gid: private_gid})
         return makeResponse({'gid': public_gid})

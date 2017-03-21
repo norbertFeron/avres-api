@@ -8,10 +8,10 @@ config = configparser.ConfigParser()
 config.read("config.ini")
 
 # todo : connect to neo4j
-graph = tlp.loadGraph(config['importer']['doi_data'])
-# graph = tlp.loadGraph("data/blizaarDoi.tlp")
+graph = tlp.loadGraph(config['importer']['doi_data_tlpb'])
+# graph = tlp.loadGraph("data/blizaarDoi30.tlp")
 # params = tlp.getDefaultPluginParameters('TLPB Export', graph)
-# tlp.exportGraph('TLPB Export', graph, "data/blizaarDoi.tlpb", params)
+# tlp.exportGraph('TLPB Export', graph, "data/blizaarDoi30.tlpb", params)
 
 
 # ---------------------------------------------------
@@ -129,7 +129,7 @@ def fonctionPrint(maxMetric):
 
 
 # ---------------------------------------------------
-def create(private_gid, selection):
+def create(private_gid, selection, sizeMaxDOIGraph):
 
     AllAnnotated = graph.getStringProperty("AllAnnotated")
     ColorSpectrum = graph.getStringProperty("ColorSpectrum")
@@ -432,7 +432,7 @@ def create(private_gid, selection):
     # precomputed with an other script python
     degPersonMax = 3401
 
-    sizeMaxDOIGraph = 120
+    # sizeMaxDOIGraph = 120
     # How to select the focus node
     chooseFocusWith = "selection"  # id, doi, selection
     # According to chooseFocusWith, the value permitting the selection of a new focus node
