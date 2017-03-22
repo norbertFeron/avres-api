@@ -29,7 +29,8 @@ class DrawGraph(Resource):
             if not os.path.isfile("%s%s.tlpb" % (config['exporter']['tlp_path'], private_gid)):
                 return makeResponse("Unknow graph id : %s" % public_gid)
             tulip_graph = tlp.loadGraph("%s%s.tlpb" % (config['exporter']['tlp_path'], private_gid))
-            tulip_graph.applyLayoutAlgorithm(layout)
+            if layout != 'no':
+                tulip_graph.applyLayoutAlgorithm(layout)
             path = tempfile.mkstemp()
             params = tlp.getDefaultPluginParameters('SIGMA JSON Export', tulip_graph)
             tlp.exportGraph("SIGMA JSON Export", tulip_graph, path[1], params)
