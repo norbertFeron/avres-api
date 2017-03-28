@@ -5,7 +5,7 @@ import os
 
 from flask_restful import Resource, reqparse, request
 from routes.utils import makeResponse
-from graphtulip.degreeOfInterest import create
+from graphtulip.degreeOfInterest import ComputeDoi
 
 
 config = configparser.ConfigParser()
@@ -22,7 +22,8 @@ class ComputeDOI(Resource):
         selection = request.args.to_dict()
         public_gid = repr(int(time.time())) + uuid.uuid4().urn[19:]
         private_gid = uuid.uuid4().urn[9:]
-        create(private_gid, selection, size)
+        computer = ComputeDoi()
+        computer.create(private_gid, selection, size)
         checkTlpFiles(self.gid_stack)
         self.gid_stack.update({public_gid: private_gid})
         return makeResponse({'gid': public_gid})
