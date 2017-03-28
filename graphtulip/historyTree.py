@@ -1,8 +1,5 @@
 from tulip import *
 
-params = tlp.getDefaultPluginParameters('Tree Leaf')
-params['orientation'] = "right to left"
-
 
 def create_trace(initial_step):
     trace = tlp.newGraph()
@@ -27,6 +24,7 @@ def add_step(trace, current_id, new):
                 trace.addEdge(n, newNode)
     nodeLabel[newNode] = new
     nodeColor[newNode] = tlp.Color(20, 20, 255)
-    trace.applyLayoutAlgorithm("Tree Leaf")
-    # trace.applyLayoutAlgorithm("Tree Leaf", trace.getLayoutProperty("viewLayout"), params)
+    params = tlp.getDefaultPluginParameters('Tree Leaf', trace)
+    params['orientation'] = "right to left"
+    trace.applyLayoutAlgorithm("Tree Leaf", trace.getLayoutProperty("viewLayout"), params)
     return newNode.id
