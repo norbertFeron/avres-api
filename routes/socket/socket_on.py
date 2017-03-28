@@ -1,50 +1,49 @@
+import json
 from flask import Flask, render_template, session, request
 from flask_socketio import SocketIO, emit, join_room, leave_room, \
-    close_room, rooms, disconnect
+    close_room, rooms, disconnect, send
 
+from graphtulip.historyTree import create_trace, load_trace, add_step
+from routes.socket.toJson import getJson
+
+traces = {}
 
 def add_sockets(socketio):
 
-    @socketio.on('message')
-    def handle_message(message):
-        print('received message: ' + message)
+    @socketio.on('get_trace')
+    def get_trace():
+        emit('response', {'graph': getJson(load_trace(0))}, json=True)
+
+    @socketio.on('action')
+    def action(message):
+        new_step = add_step(traces[message['userId']], message['actual'], message['new'])
+        emit('response', {'graph': getJson(traces[message['userId']]), 'newStep': new_step}, json=True)
 
     @socketio.on('join')
     def join(message):
         join_room(message['room'])
-        session['receive_count'] = session.get('receive_count', 0) + 1
-        emit('response',
-             {'data': 'In rooms: ' + ', '.join(rooms()),
-              'count': session['receive_count']})
+        traces[message['userId']] = create_trace(message['initial_step'])
+        emit('response', {'log': 'In rooms: ' + ', '.join(rooms()), 'graph': getJson(traces[message['userId']]), "newStep": 0})
 
     @socketio.on('leave')
     def leave(message):
         leave_room(message['room'])
-        session['receive_count'] = session.get('receive_count', 0) + 1
-        emit('response',
-             {'data': 'In rooms: ' + ', '.join(rooms()),
-              'count': session['receive_count']})
+        emit('response', {'data': 'In rooms: ' + ', '.join(rooms())})
 
     @socketio.on('close_room')
     def close(message):
-        session['receive_count'] = session.get('receive_count', 0) + 1
-        emit('response', {'data': 'Room ' + message['room'] + ' is closing.',
-                             'count': session['receive_count']},
-             room=message['room'])
+        emit('response', {'data': 'Room ' + message['room'] + ' is closing.'}, room=message['room'])
         close_room(message['room'])
 
     @socketio.on('my_room_event')
     def send_room_message(message):
-        session['receive_count'] = session.get('receive_count', 0) + 1
         emit('response',
-             {'data': message['data'], 'count': session['receive_count']},
-             room=message['room'])
+             {'data': message['data']}, room=message['room'])
 
     @socketio.on('disconnect_request')
     def disconnect_request():
-        session['receive_count'] = session.get('receive_count', 0) + 1
         emit('response',
-             {'data': 'Disconnected!', 'count': session['receive_count']})
+             {'data': 'Disconnected!'})
         disconnect()
 
     @socketio.on('disconnect')
