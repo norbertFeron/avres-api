@@ -32,7 +32,7 @@ class ComputeDOI(Resource):
 def checkTlpFiles(gid_stack):
     if len(gid_stack) > int(config['api']['max_tlp_files']) - 1:
         keys = gid_stack.copy()
-        keys.pop('complete')
+        # keys.pop('complete')
         min = 9999999999
         min_key = None
         for key in keys:

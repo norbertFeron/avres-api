@@ -3,7 +3,7 @@ import os
 import tempfile
 
 from flask_restful import Resource, reqparse
-from routes.utils import makeResponse
+from routes.utils import makeResponse, getJson
 from tulip import *
 
 config = configparser.ConfigParser()
@@ -33,5 +33,5 @@ class DrawGraph(Resource):
                 tulip_graph.applyLayoutAlgorithm(layout)
             path = tempfile.mkstemp()
             params = tlp.getDefaultPluginParameters('SIGMA JSON Export', tulip_graph)
-            tlp.exportGraph("SIGMA JSON Export", tulip_graph, path[1], params)
-            return makeResponse(path[1], 200, True)
+            # tlp.exportGraph("SIGMA JSON Export", tulip_graph, path[1], params)
+            return makeResponse(getJson(tulip_graph), 200, False)
