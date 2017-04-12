@@ -1,22 +1,12 @@
-import configparser
 import time
 
 from tulip import *
 from math import sqrt
 
-config = configparser.ConfigParser()
-config.read("config.ini")
 
 class ComputeDoi(object):
-    def __init__(self):
-        super(ComputeDoi, self).__init__()
-        # todo : connect to neo4j
-        self.graph = tlp.loadGraph(config['importer']['doi_data_tlpb'])
-
-        # self.graph = tlp.loadGraph("data/blizaarDoi30.tlp")
-        # params = tlp.getDefaultPluginParameters('TLPB Export', self.graph)
-        # tlp.exportGraph('TLPB Export', self.graph, "data/blizaarDoi30.tlpb", params)
-
+    def __init__(self, graph):
+        self.graph = graph
     # ---------------------------------------------------
     # return the API value for DOI computation
     def makeAPIdiff(self, n, sigma, maxMetric, metric):
@@ -133,7 +123,7 @@ class ComputeDoi(object):
 
 
     # ---------------------------------------------------
-    def create(self, private_gid, selection, sizeMaxDOIGraph):
+    def create(self, selection, sizeMaxDOIGraph, subName):
 
         AllAnnotated = self.graph.getStringProperty("AllAnnotated")
         ColorSpectrum = self.graph.getStringProperty("ColorSpectrum")
@@ -450,7 +440,7 @@ class ComputeDoi(object):
         print("Mode : " + chooseFocusWith.upper())
         for n in self.graph.getNodes():
             originalId[n] = n.id
-            if str(n.id) in list(selection.values()):
+            if str(n.id) in selection:
                 isChosen[n] = True
                 listIsChosen.append(n)
                 viewColor[n] = tlp.Color(20, 20, 255)
@@ -501,10 +491,8 @@ class ComputeDoi(object):
             cmpt += 1
             print("--- " + str(int((cmpt / sizeMaxDOIGraph) * 100)) + "% ---")
 
-        context_subgraph = tlp.Graph.inducedSubGraph(self.graph, listNodesSubGraph)
 
         # Done
         end = time.time()
         print("Time(s) : " + str(end - start))
-        params = tlp.getDefaultPluginParameters('TLPB Export', self.graph)
-        tlp.exportGraph('TLPB Export', context_subgraph, "%s%s.tlpb" % (config['exporter']['tlp_path'], private_gid), params)
+        return self.graph.inducedSubGraph(listNodesSubGraph, self.graph, subName)

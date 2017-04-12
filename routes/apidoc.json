@@ -1,8 +1,0 @@
-{
-"name": "graph-ryder-api",
-"version": "0.1.0",
-"description": "api for the graph-ryder project",
-"template": {
-  "withCompare": false
-}
-}
