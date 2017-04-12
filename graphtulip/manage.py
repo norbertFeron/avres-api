@@ -74,6 +74,13 @@ def add_step(data):
     # apply DOI
     computeDoi = ComputeDoi(graph)
     result = computeDoi.create(list(data['selection'].values()), data['size'], str(newNode.id))
+    view_selection = result.getBooleanProperty('viewSelection')
+    view_selection.setAllEdgeValue(False)
+    view_selection.setAllNodeValue(False)
+    for n in result.nodes():
+        if str(n.id) in list(data['selection'].values()):
+            view_selection[n] = True
     params = tlp.getDefaultPluginParameters(data['layout'], result)
     result.applyLayoutAlgorithm(data['layout'], result.getLayoutProperty("viewLayout"), params)
+    # tlp.saveGraph(result, "data/tlp/save.tlp")
     return trace, result, str(newNode.id)

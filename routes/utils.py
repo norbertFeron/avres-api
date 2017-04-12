@@ -67,6 +67,8 @@ def getJson(graph):
                 n["selection"] = prop.getNodeStringValue(node)
             elif prop.getName() == "type":
                 n["type"] = prop.getNodeStringValue(node)
+            elif prop.getName() == "viewSelection":
+                n["viewSelection"] = prop.getNodeValue(node)
             # other
             # elif prop.getNodeDefaultStringValue() != prop.getNodeStringValue(node) \
             #         and prop.getNodeStringValue(node):
