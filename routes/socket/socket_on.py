@@ -35,21 +35,14 @@ def add_sockets(socketio):
         emit('response', {'type': 'join'})
         emit('response', {'type': 'get_trace', 'data': {"graph": getJson(trace), 'step': step, 'user': message['user']}}, json=True)
 
-
     @socketio.on('leave')
     def leave(message):
         leave_room(message['room'])
         emit('response', {'type': 'leave'})
 
-    @socketio.on('close_room')
-    def close(message):
-        emit('response', {'data': 'Room ' + message['room'] + ' is closing.'}, room=message['room'])
-        close_room(message['room'])
-
-    @socketio.on('my_room_event')
-    def send_room_message(message):
-        emit('response',
-             {'data': message['data']}, room=message['room'])
+    @socketio.on('focus')
+    def send_room_focus(message):
+        emit('response', {'type': 'focus', 'data': {'user': message['user'], 'step': message['step']}}, room=message['room'])
 
     @socketio.on('disconnect_request')
     def disconnect_request():
