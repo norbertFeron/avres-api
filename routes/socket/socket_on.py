@@ -3,7 +3,7 @@ from flask_socketio import emit, join_room, leave_room, \
     close_room, rooms, disconnect
 from tulip import *
 
-from graphtulip.manage import create, load, add_step
+from graphtulip.manage import create, load, addStep, getStep
 from routes.utils import getJson
 
 def add_sockets(socketio):
@@ -17,22 +17,29 @@ def add_sockets(socketio):
     def get_layouts():
         emit('response', {'type': 'get_layouts', 'data': tlp.getLayoutAlgorithmPluginsList()}, json=True)
 
+    @socketio.on('get_step')
+    def get_step(message):
+        graph = getStep(message['room'], message['step'])
+        emit('response', {'type': 'reload_step', 'data': {'graph': getJson(graph), 'step': message['step']}}, json=True)
+
     @socketio.on('action')
     def action(message):
-        trace, doi, step = add_step(message)
-        emit('response', {'type': 'get_trace', 'data': {"graph": getJson(trace), "step": step}}, json=True)
-        emit('response', {'type': 'get_step', 'data': {"graph": getJson(doi), "step": step}})
+        trace, doi, step = addStep(message)
+        emit('response', {'type': 'get_trace', 'data': {"graph": getJson(trace), "step": step}}, json=True, room=message['room'])
+        emit('response', {'type': 'get_step', 'data': {"graph": getJson(doi), "step": step}}, room=message['room'])
 
     @socketio.on('join')
     def join(message):
         join_room(message['room'])
-        trace = create(message['type'], message['userId'])
-        emit('response', {'log': 'In rooms: ' + ', '.join(rooms())})
+        trace = create(message['type'], message['room'])
+        emit('response', {'type': 'join'})
+        emit('response', {'type': 'get_trace', 'data': {"graph": getJson(trace)}}, json=True)
+
 
     @socketio.on('leave')
     def leave(message):
         leave_room(message['room'])
-        emit('response', {'data': 'In rooms: ' + ', '.join(rooms())})
+        emit('response', {'type': 'leave'})
 
     @socketio.on('close_room')
     def close(message):

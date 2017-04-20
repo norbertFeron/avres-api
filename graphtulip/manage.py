@@ -6,12 +6,15 @@ from graphtulip.degreeOfInterest import ComputeDoi
 graphs = {}
 
 
-def create(type, usr):
+def create(type, room):
     if type == 'doi':
-        root = load_doi()
-        root.addCloneSubGraph("graph")
-        trace = root.addSubGraph("trace")
-        graphs[usr] = root
+        if room in graphs.keys():
+            trace = graphs[room].getSubGraph('trace')
+        else:
+            root = load_doi()
+            root.addCloneSubGraph("graph")
+            trace = root.addSubGraph("trace")
+            graphs[room] = root
         return trace
 
 
@@ -21,24 +24,29 @@ def load(trace_id):
     return tlp.loadGraph("data/" + trace_id + ".tlpb"), step
 
 
+def getStep(room, step):
+    graph = graphs[room].getSubGraph('graph')
+    return graph.getSubGraph(str(step))
+
+
 def save(trace_id):
     # todo save and destroy trace
     tlp.saveGraph("data/" + trace_id + ".tlpb")
 
 
-def add_step(data):
+def addStep(data):
     # load graph
-    root = graphs[data['userId']]
+    root = graphs[data['room']]
     graph = root.getSubGraph("graph")
     trace = root.getSubGraph("trace")
     # add a Step
     newNode = trace.addNode()
-    label = trace.getStringProperty("name")
-    color = trace.getColorProperty("viewColor")
-    layout = trace.getStringProperty("layout")
-    size = trace.getIntegerProperty("doi_size")
-    selection = trace.getStringProperty("selection")
-    type = trace.getStringProperty("type")
+    label = trace.getLocalStringProperty("name")
+    color = trace.getLocalColorProperty("viewColor")
+    layout = trace.getLocalStringProperty("layout")
+    size = trace.getLocalIntegerProperty("doi_size")
+    selection = trace.getLocalStringProperty("selection")
+    type = trace.getLocalStringProperty("type")
 
     label[newNode] = "step " + str(newNode.id)
     layout[newNode] = data['layout']
@@ -70,17 +78,17 @@ def add_step(data):
     color[newNode] = tlp.Color(20, 20, 255)
     params = tlp.getDefaultPluginParameters('Tree Leaf', trace)
     params['orientation'] = "right to left"
-    trace.applyLayoutAlgorithm("Tree Leaf", trace.getLayoutProperty("viewLayout"), params)
+    trace.applyLayoutAlgorithm("Tree Leaf", trace.getLocalLayoutProperty("viewLayout"), params)
     # apply DOI
     computeDoi = ComputeDoi(graph)
     result = computeDoi.create(list(data['selection'].values()), data['size'], str(newNode.id))
-    view_selection = result.getBooleanProperty('viewSelection')
+    view_selection = result.getLocalBooleanProperty('viewSelection')
     view_selection.setAllEdgeValue(False)
     view_selection.setAllNodeValue(False)
     for n in result.nodes():
         if str(n.id) in list(data['selection'].values()):
             view_selection[n] = True
     params = tlp.getDefaultPluginParameters(data['layout'], result)
-    result.applyLayoutAlgorithm(data['layout'], result.getLayoutProperty("viewLayout"), params)
-    # tlp.saveGraph(result, "data/tlp/save.tlp")
+    # tlp.saveGraph(result, "data/tlp/save.tlpb")
+    result.applyLayoutAlgorithm(data['layout'], result.getLocalLayoutProperty("viewLayout"), params)
     return trace, result, str(newNode.id)
