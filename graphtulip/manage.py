@@ -6,16 +6,18 @@ from graphtulip.degreeOfInterest import ComputeDoi
 graphs = {}
 
 
-def create(type, room):
+def onJoin(type, room):
     if type == 'doi':
         if room in graphs.keys():
             trace = graphs[room].getSubGraph('trace')
+            step = trace.nodes()[-1].id
         else:
             root = load_doi()
             root.addCloneSubGraph("graph")
             trace = root.addSubGraph("trace")
             graphs[room] = root
-        return trace
+            step = None
+        return trace, step
 
 
 def load(trace_id):
@@ -91,4 +93,4 @@ def addStep(data):
     params = tlp.getDefaultPluginParameters(data['layout'], result)
     # tlp.saveGraph(result, "data/tlp/save.tlpb")
     result.applyLayoutAlgorithm(data['layout'], result.getLocalLayoutProperty("viewLayout"), params)
-    return trace, result, str(newNode.id)
+    return trace, result, newNode.id

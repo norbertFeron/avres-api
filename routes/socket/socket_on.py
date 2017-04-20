@@ -3,7 +3,7 @@ from flask_socketio import emit, join_room, leave_room, \
     close_room, rooms, disconnect
 from tulip import *
 
-from graphtulip.manage import create, load, addStep, getStep
+from graphtulip.manage import onJoin, load, addStep, getStep
 from routes.utils import getJson
 
 def add_sockets(socketio):
@@ -11,7 +11,7 @@ def add_sockets(socketio):
     @socketio.on('load_trace')
     def load_trace(message):
         trace, step = load(message)
-        emit('response', {'type': 'get_trace', 'data': {"graph": getJson(trace), "step": step}}, json=True)
+        emit('response', {'type': 'get_trace', 'data': {"graph": getJson(trace), "step": step, 'user': message['user']}}, json=True)
 
     @socketio.on('get_layouts')
     def get_layouts():
@@ -25,15 +25,15 @@ def add_sockets(socketio):
     @socketio.on('action')
     def action(message):
         trace, doi, step = addStep(message)
-        emit('response', {'type': 'get_trace', 'data': {"graph": getJson(trace), "step": step}}, json=True, room=message['room'])
-        emit('response', {'type': 'get_step', 'data': {"graph": getJson(doi), "step": step}}, room=message['room'])
+        emit('response', {'type': 'get_trace', 'data': {"graph": getJson(trace), "step": step,  'user': message['user']}}, json=True, room=message['room'])
+        # emit('response', {'type': 'get_step', 'data': {"graph": getJson(doi), "step": step}})
 
     @socketio.on('join')
     def join(message):
         join_room(message['room'])
-        trace = create(message['type'], message['room'])
+        trace, step = onJoin(message['type'], message['room'])
         emit('response', {'type': 'join'})
-        emit('response', {'type': 'get_trace', 'data': {"graph": getJson(trace)}}, json=True)
+        emit('response', {'type': 'get_trace', 'data': {"graph": getJson(trace), 'step': step, 'user': message['user']}}, json=True)
 
 
     @socketio.on('leave')
