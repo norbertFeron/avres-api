@@ -59,7 +59,7 @@ def addStep(data):
     # trace the edge and label it
     if data['actual'] != None:
         for n in trace.nodes():
-            color[n] = tlp.Color(255, 95, 95)
+            # color[n] = tlp.Color(255, 95, 95)
             if str(n.id) == str(data['actual']):
                 edge = trace.addEdge(n, newNode)
                 edge_label = ""
@@ -77,7 +77,7 @@ def addStep(data):
                     edge_label += " " + type[newNode]
                 label[edge] = edge_label
 
-    color[newNode] = tlp.Color(20, 20, 255)
+    # color[newNode] = tlp.Color(20, 20, 255)
     params = tlp.getDefaultPluginParameters('Tree Leaf', trace)
     params['orientation'] = "right to left"
     trace.applyLayoutAlgorithm("Tree Leaf", trace.getLocalLayoutProperty("viewLayout"), params)

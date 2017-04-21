@@ -443,8 +443,8 @@ class ComputeDoi(object):
             if str(n.id) in selection:
                 isChosen[n] = True
                 listIsChosen.append(n)
-                viewColor[n] = tlp.Color(20, 20, 255)
-                viewSize[n] = tlp.Size(2, 2, 1)
+                # viewColor[n] = tlp.Color(20, 20, 255)
+                # viewSize[n] = tlp.Size(2, 2, 1)
             # reset isCandidate
             isCandidate[n] = False
 
