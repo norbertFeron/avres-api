@@ -3,44 +3,42 @@ from loader.loader import load_doi
 
 from graphtulip.degreeOfInterest import ComputeDoi
 
-graphs = {}
+root = load_doi()
+root.addCloneSubGraph("graph")
+traces = []
 
 
 def onJoin(type, room):
     if type == 'doi':
-        if room in graphs.keys():
-            trace = graphs[room].getSubGraph('trace')
+        if room in traces:
+            trace = root.getSubGraph('trace' + room)
             step = trace.nodes()[-1].id
         else:
-            root = load_doi()
-            root.addCloneSubGraph("graph")
-            trace = root.addSubGraph("trace")
-            graphs[room] = root
+            trace = root.addSubGraph("trace" + room)
+            traces.append(room)
             step = None
         return trace, step
 
 
 def load(trace_id):
     # todo load trace
-    step = 0
-    return tlp.loadGraph("data/" + trace_id + ".tlpb"), step
+    return None, None
 
 
-def getStep(room, step):
-    graph = graphs[room].getSubGraph('graph')
+def getStep(step):
+    graph = root.getSubGraph('graph')
     return graph.getSubGraph(str(step))
 
 
 def save(trace_id):
-    # todo save and destroy trace
+    # todo save
     tlp.saveGraph("data/" + trace_id + ".tlpb")
 
 
 def addStep(data):
     # load graph
-    root = graphs[data['room']]
     graph = root.getSubGraph("graph")
-    trace = root.getSubGraph("trace")
+    trace = root.getSubGraph("trace" + data['room'])
     # add a Step
     newNode = trace.addNode()
     label = trace.getLocalStringProperty("name")
@@ -93,4 +91,4 @@ def addStep(data):
     params = tlp.getDefaultPluginParameters(data['layout'], result)
     # tlp.saveGraph(result, "data/tlp/save.tlpb")
     result.applyLayoutAlgorithm(data['layout'], result.getLocalLayoutProperty("viewLayout"), params)
-    return trace, result, newNode.id
+    return trace, newNode.id

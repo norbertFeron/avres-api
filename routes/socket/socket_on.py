@@ -19,12 +19,12 @@ def add_sockets(socketio):
 
     @socketio.on('get_step')
     def get_step(message):
-        graph = getStep(message['room'], message['step'])
+        graph = getStep(message['step'])
         emit('response', {'type': 'get_step', 'data': {'graph': getJson(graph), 'step': message['step']}}, json=True)
 
     @socketio.on('action')
     def action(message):
-        trace, doi, step = addStep(message)
+        trace, step = addStep(message)
         emit('response', {'type': 'get_trace', 'data': {"graph": getJson(trace), "step": step,  'user': message['user']}}, json=True, room=message['room'])
         # emit('response', {'type': 'get_step', 'data': {"graph": getJson(doi), "step": step}})
 
