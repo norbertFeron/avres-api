@@ -70,14 +70,13 @@ def getJson(graph):
             elif prop.getName() == "viewSelection":
                 n["viewSelection"] = prop.getNodeValue(node)
             # other
-            # elif prop.getNodeDefaultStringValue() != prop.getNodeStringValue(node) \
-            #         and prop.getNodeStringValue(node):
-            #     value = prop.getNodeStringValue(node)\
-            #         .replace('"', '\\\"')\
-            #         .replace("\n", "")\
-            #         .replace("\r", "")\
-            #         .replace("\t", "")
-            #     json += '"%s":"%s", ' % (prop.getName(), value)
+            elif prop.getNodeDefaultStringValue() != prop.getNodeStringValue(node) \
+                    and prop.getNodeStringValue(node):
+                n[prop.getName()] = prop.getNodeStringValue(node)\
+                    .replace('"', '\\\"')\
+                    .replace("\n", "")\
+                    .replace("\r", "")\
+                    .replace("\t", "")
             # sigma id
         n["id"] = node.id
         if not n in nodes:
