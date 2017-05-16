@@ -3,7 +3,7 @@ from flask_socketio import emit, join_room, leave_room, \
     close_room, rooms, disconnect
 from tulip import *
 
-from graphtulip.manage import onJoin, load, addStep, getStep
+from graphtulip.manage import onJoin, load, addStep, getStep, getNodes
 from routes.utils import getJson
 
 def add_sockets(socketio):
@@ -12,6 +12,10 @@ def add_sockets(socketio):
     def load_trace(message):
         trace, step = load(message)
         emit('response', {'type': 'get_trace', 'data': {"graph": getJson(trace), "step": step, 'user': message['user']}}, json=True)
+
+    @socketio.on('get_nodes')
+    def get_nodes():
+        emit('response', {'type': 'get_nodes', 'data': getNodes()}, json=True)
 
     @socketio.on('get_layouts')
     def get_layouts():

@@ -440,10 +440,10 @@ class ComputeDoi(object):
         print("Mode : " + chooseFocusWith.upper())
         for n in self.graph.getNodes():
             originalId[n] = n.id
-            if str(n.id) in selection:
+            if n.id in selection:
                 isChosen[n] = True
                 listIsChosen.append(n)
-                # viewColor[n] = tlp.Color(20, 20, 255)
+                viewColor[n] = tlp.Color(20, 20, 255)
                 # viewSize[n] = tlp.Size(2, 2, 1)
             # reset isCandidate
             isCandidate[n] = False

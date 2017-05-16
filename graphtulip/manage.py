@@ -12,7 +12,10 @@ def onJoin(type, room):
     if type == 'doi':
         if room in traces:
             trace = root.getSubGraph('trace' + room)
-            step = trace.nodes()[-1].id
+            if not trace.nodes():
+                step = None
+            else:
+                step = trace.nodes()[-1].id
         else:
             trace = root.addSubGraph("trace" + room)
             traces.append(room)
@@ -23,6 +26,16 @@ def onJoin(type, room):
 def load(trace_id):
     # todo load trace
     return None, None
+
+
+def getNodes():
+    graph = root.getSubGraph('graph')
+    name = graph.getStringProperty("name")
+    type = graph.getStringProperty("type")
+    nodes = []
+    for n in graph.getNodes():
+        nodes.append({"name": name.getNodeValue(n), "type": type.getNodeValue(n), "id": n.id})
+    return nodes
 
 
 def getStep(step):
@@ -53,7 +66,7 @@ def addStep(data):
     layout[newNode] = data['layout']
     type[newNode] = data['type']
     size[newNode] = data['size']
-    selection[newNode] = str(list(data['selection'].values()))
+    selection[newNode] = str(data['selection'])
 
     if data['type'] == 'doi':
         # Trace the edge and label it
@@ -77,18 +90,18 @@ def addStep(data):
                     label[edge] = edge_label
 
         computeDoi = ComputeDoi(graph)
-        result = computeDoi.create(list(data['selection'].values()), data['size'], str(newNode.id))
+        result = computeDoi.create(data['selection'], data['size'], str(newNode.id))
         view_selection = result.getLocalBooleanProperty('viewSelection')
         view_selection.setAllEdgeValue(False)
         view_selection.setAllNodeValue(False)
         for n in result.nodes():
-            if str(n.id) in list(data['selection'].values()):
+            if n.id in data['selection']:
                 view_selection[n] = True
     else:
         for n in trace.nodes():
-            if str(n.id) == str(data['actual']):
+            if n.id == str(data['actual']):
                 edge = trace.addEdge(n, newNode)
-        label[edge] = layout[newNode]
+                label[edge] = layout[newNode]
 
         actual = graph.getSubGraph(str(data['actual']))
         result = actual.addCloneSubGraph(str(newNode.id), True, True)
@@ -99,8 +112,7 @@ def addStep(data):
     trace.applyLayoutAlgorithm("Tree Leaf", trace.getLocalLayoutProperty("viewLayout"), params)
 
     # Apply layout on the graph
-    # tlp.saveGraph(root, "data/tlp/root.tlpb")
     params = tlp.getDefaultPluginParameters(data['layout'], result)
     result.applyLayoutAlgorithm(data['layout'], result.getLocalLayoutProperty("viewLayout"), params)
-
+    tlp.saveGraph(root, "data/tlp/root.tlpb")
     return trace, newNode.id

@@ -58,7 +58,7 @@ def getJson(graph):
                 n["x"] = coord[0]
                 n["y"] = float(coord[1]) * (-1)
             elif prop.getName() == "originalId":
-                n["originalId"] = prop.getNodeStringValue(node)
+                n["originalId"] = prop.getNodeValue(node)
             elif prop.getName() == "layout":
                 n["layout"] = prop.getNodeStringValue(node)
             elif prop.getName() == "doi_size":
