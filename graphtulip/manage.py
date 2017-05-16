@@ -98,8 +98,9 @@ def addStep(data):
             if n.id in data['selection']:
                 view_selection[n] = True
     else:
+        print(data['actual'])
         for n in trace.nodes():
-            if n.id == str(data['actual']):
+            if n.id == data['actual']:
                 edge = trace.addEdge(n, newNode)
                 label[edge] = layout[newNode]
 
