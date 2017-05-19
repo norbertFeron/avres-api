@@ -1,3 +1,4 @@
+import time
 from tulip import *
 from loader.loader import load_doi
 
@@ -32,9 +33,11 @@ def getNodes():
     graph = root.getSubGraph('graph')
     name = graph.getStringProperty("name")
     type = graph.getStringProperty("type")
+    labelsNodeTlp = graph.getStringVectorProperty("labelsNodeTlp")
     nodes = []
     for n in graph.getNodes():
-        nodes.append({"name": name.getNodeValue(n), "type": type.getNodeValue(n), "id": n.id})
+        n_type = str(type.getNodeValue(n)) + str(labelsNodeTlp.getNodeValue(n))
+        nodes.append({"name": name.getNodeValue(n), "type": n_type, "id": n.id})
     return nodes
 
 
@@ -56,6 +59,7 @@ def addStep(data):
     label = trace.getLocalStringProperty("name")
     color = trace.getLocalColorProperty("viewColor")
     layout = trace.getLocalStringProperty("layout")
+    timestamp = trace.getLocalIntegerProperty("timestamp")
     size = trace.getLocalIntegerProperty("doi_size")
     selection = trace.getLocalStringProperty("selection")
     type = trace.getLocalStringProperty("type")
@@ -78,7 +82,7 @@ def addStep(data):
                     if layout[n] != layout[newNode]:
                         edge_label += layout[newNode]
                     if selection[n] != selection[newNode]:
-                        edge_label += " selection"
+                        edge_label += " selection" + selection[newNode]
                     if size[n] != size[newNode]:
                         size = size[newNode] - size[n]
                         if size > 0:
@@ -88,6 +92,7 @@ def addStep(data):
                     if type[n] != type[newNode]:
                         edge_label += " " + type[newNode]
                     label[edge] = edge_label
+                    timestamp[edge] = int(time.time())
 
         computeDoi = ComputeDoi(graph)
         result = computeDoi.create(data['selection'], data['size'], str(newNode.id))
@@ -98,11 +103,11 @@ def addStep(data):
             if n.id in data['selection']:
                 view_selection[n] = True
     else:
-        print(data['actual'])
         for n in trace.nodes():
             if n.id == data['actual']:
                 edge = trace.addEdge(n, newNode)
                 label[edge] = layout[newNode]
+                timestamp[edge] = int(time.time())
 
         actual = graph.getSubGraph(str(data['actual']))
         result = actual.addCloneSubGraph(str(newNode.id), True, True)
@@ -111,6 +116,15 @@ def addStep(data):
     params = tlp.getDefaultPluginParameters('Tree Leaf', trace)
     params['orientation'] = "right to left"
     trace.applyLayoutAlgorithm("Tree Leaf", trace.getLocalLayoutProperty("viewLayout"), params)
+
+    # Apply color scale en edges
+    params = tlp.getDefaultPluginParameters('Color Mapping', trace)
+    colors = [tlp.Color.Blue, tlp.Color.Red]
+    colorScale = tlp.ColorScale(colors)
+    params['color scale'] = colorScale
+    params['input property'] = timestamp
+    params['target'] = "edges"
+    trace.applyColorAlgorithm('Color Mapping', params)
 
     # Apply layout on the graph
     params = tlp.getDefaultPluginParameters(data['layout'], result)

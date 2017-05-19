@@ -16,6 +16,9 @@ def getJson(graph):
                     e["label"] = label
                     # else:
                     # json += '%s"label":"edge%s", %s' % (hr_2t, edge.id, hr_n)
+            elif prop.getName() == "timestamp":
+                if prop.getEdgeValue(edge):
+                    e["timestamp"] = prop.getEdgeValue(edge)
             # other
             # elif prop.getEdgeDefaultStringValue() != prop.getEdgeStringValue(edge) \
             #         and prop.getEdgeStringValue(edge):
@@ -28,7 +31,6 @@ def getJson(graph):
         # sigma id
         e["id"] = edge.id
         e["type"] = 'arrow'
-        e["color"] = '#ccc'
         edges.append(e)
 
     # nodes
