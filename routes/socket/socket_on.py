@@ -32,6 +32,13 @@ def add_sockets(socketio):
         emit('response', {'type': 'get_trace', 'data': {"graph": getJson(trace), "step": step,  'user': message['user']}}, json=True, room=message['room'])
         # emit('response', {'type': 'get_step', 'data': {"graph": getJson(doi), "step": step}})
 
+    # @socketio.on('annotate')
+    # def annotate(message):
+    #     trace, graph = add_annotation(message)
+    #     emit('response', {'type': 'get_trace', 'data': {"graph": getJson(trace), "step": message['step'],  'user': message['user']}}, json=True, room=message['room'])
+    #     emit('response', {'type': 'get_step', 'data': {"graph": getJson(graph), "step": message['step']}})
+
+
     @socketio.on('join')
     def join(message):
         join_room(message['room'])
