@@ -51,6 +51,22 @@ def save(trace_id):
     tlp.saveGraph("data/" + trace_id + ".tlpb")
 
 
+# def add_annotation(data):
+#     graph = root.getSubGraph("graph")
+#     trace = root.getSubGraph("trace" + data['room'])
+#     actual = graph.getSubGraph(str(data['step']))
+#
+#     name = graph.getStringProperty("name")
+#     viewLayout = graph.getLayoutProperty("viewLayout")
+#
+#     annotation = actual.addNode()
+#     name[annotation] = "annotation test"
+#
+#     # add self loop on trace
+#
+#     return trace, actual
+
+
 def addStep(data):
     # Load graph
     graph = root.getSubGraph("graph")
@@ -82,7 +98,8 @@ def addStep(data):
                     if layout[n] != layout[newNode]:
                         edge_label += layout[newNode]
                     if selection[n] != selection[newNode]:
-                        edge_label += " selection" + selection[newNode]
+                        # edge_label += " selection" + selection[newNode]
+                        edge_label += " selection"
                     if size[n] != size[newNode]:
                         size = size[newNode] - size[n]
                         if size > 0:
@@ -114,8 +131,8 @@ def addStep(data):
 
     # Apply layout on the trace
     params = tlp.getDefaultPluginParameters('Tree Leaf', trace)
-    params['orientation'] = "right to left"
-    trace.applyLayoutAlgorithm("Tree Leaf", trace.getLocalLayoutProperty("viewLayout"), params)
+    # params['orientation'] = "right to left"
+    trace.applyLayoutAlgorithm("OrthoTree", trace.getLocalLayoutProperty("viewLayout"), params)
 
     # Apply color scale en edges
     params = tlp.getDefaultPluginParameters('Color Mapping', trace)
