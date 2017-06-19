@@ -3,6 +3,7 @@ from tulip import *
 from loader.loader import load_doi
 
 from graphtulip.degreeOfInterest import ComputeDoi
+from routes.utils import getJson
 
 root = load_doi()
 root.addCloneSubGraph("graph")
@@ -41,9 +42,27 @@ def getNodes():
     return nodes
 
 
-def getStep(step):
+def getStep(data):
+    trace = root.getSubGraph("trace" + data['room'])
     graph = root.getSubGraph('graph')
-    return graph.getSubGraph(str(step))
+
+    layout = trace.getLocalStringProperty("layout")
+    size = trace.getLocalIntegerProperty("doi_size")
+    selection = trace.getLocalStringProperty("selection")
+    type = trace.getLocalStringProperty("type")
+
+    step = {}
+
+    for n in trace.nodes():
+        if n.id == data['step']:
+            step['layout'] = layout[n]
+            step['size'] = size[n]
+            step['selection'] = selection[n]
+            step['type'] = type[n]
+            step['id'] = n.id
+    step['graph'] = getJson(graph.getSubGraph(str(data['step'])))
+
+    return step
 
 
 def save(trace_id):

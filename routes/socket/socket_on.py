@@ -23,8 +23,8 @@ def add_sockets(socketio):
 
     @socketio.on('get_step')
     def get_step(message):
-        graph = getStep(message['step'])
-        emit('response', {'type': 'get_step', 'data': {'graph': getJson(graph), 'step': message['step']}}, json=True)
+        step = getStep(message)
+        emit('response', {'type': 'get_step', 'data': step}, json=True)
 
     @socketio.on('action')
     def action(message):
