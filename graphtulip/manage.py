@@ -149,8 +149,10 @@ def addStep(data):
         result = actual.addCloneSubGraph(str(newNode.id), True, True)
 
     # Apply layout on the trace
-    params = tlp.getDefaultPluginParameters('Tree Leaf', trace)
+    # params = tlp.getDefaultPluginParameters('Tree Leaf', trace)
+    params = tlp.getDefaultPluginParameters('OrthoTree', trace)
     # params['orientation'] = "right to left"
+    # trace.applyLayoutAlgorithm("Tree Leaf", trace.getLocalLayoutProperty("viewLayout"), params)
     trace.applyLayoutAlgorithm("OrthoTree", trace.getLocalLayoutProperty("viewLayout"), params)
 
     # Apply color scale en edges
