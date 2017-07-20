@@ -5,43 +5,23 @@ import time
 from flask_restful import Resource, reqparse
 from routes.utils import makeResponse
 from graphtulip.createtlp import CreateTlp
-from graphtulip.createfulltlp import CreateFullTlp
 
 config = configparser.ConfigParser()
 config.read("config.ini")
 
 parser = reqparse.RequestParser()
 
-# Graph generate once
-
-
-class GenerateFullGraph(Resource):
-    def __init__(self, **kwargs):
-        self.gid_stack = kwargs['gid_stack']
-
-    def get(self):
-        if 'complete' in self.gid_stack.keys():
-            os.remove('%s%s.tlp' % (config['exporter']['tlp_path'], self.gid_stack.pop("complete")))
-        private_gid = uuid.uuid4().urn[9:]
-        creator = CreateFullTlp()
-        creator.create(private_gid)
-        self.gid_stack.update({"complete": private_gid})
-        return makeResponse(True)
-
-
-# Create new graph
 
 class CreateGraph(Resource):
     def __init__(self, **kwargs):
         self.gid_stack = kwargs['gid_stack']
 
     def get(self, field, value):
-        public_gid = int(time.time()) + uuid.uuid4().urn[19:]
-        print(public_gid)
+        public_gid = str(int(time.time())) + uuid.uuid4().urn[19:]
         private_gid = uuid.uuid4().urn[9:]
         creator = CreateTlp()
         params = [(field, value)]
-        creator.createWithParams(params, private_gid)
+        creator.create(params, private_gid)
         checkTlpFiles(self.gid_stack)
         self.gid_stack.update({public_gid: private_gid})
         return makeResponse({'gid': public_gid})
