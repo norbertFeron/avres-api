@@ -1,9 +1,8 @@
 import configparser
 import os
-import tempfile
 
 from flask_restful import Resource, reqparse
-from routes.utils import makeResponse
+from routes.utils import makeResponse, getJson
 from tulip import *
 
 config = configparser.ConfigParser()
@@ -27,6 +26,4 @@ class DrawGraph(Resource):
             return makeResponse("Unknow graph id : %s" % public_gid)
         tulip_graph = tlp.loadGraph("%s%s.tlp" % (config['exporter']['tlp_path'], private_gid))
         tulip_graph.applyLayoutAlgorithm(layout)
-        path = tempfile.mkstemp()
-        tlp.exportGraph("SIGMA JSON Export", tulip_graph, path[1])
-        return makeResponse(path[1], 200, True)
+        return makeResponse(getJson(tulip_graph), 200)
