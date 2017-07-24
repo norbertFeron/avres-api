@@ -13,11 +13,33 @@ parser = reqparse.RequestParser()
 
 
 class GetLayoutAlgorithm(Resource):
+    """
+    @api {get} /layoutAlgorithm Get layout
+    @apiName GetLayoutAlgorithm
+    @apiGroup Tulip
+    @apiDescription Get list of tulip's layout algorithms
+
+    @apiSuccess {Json} [String] list of algorithms.
+    """
     def get(self):
         return makeResponse(tlp.getLayoutAlgorithmPluginsList(), 200)
 
 
 class DrawGraph(Resource):
+    """
+    @api {get} /draw/:graph_id/:layout Draw graph
+    @apiName DrawGraph
+    @apiGroup Tulip
+    @apiDescription Draw a graph with id and algorithm
+
+    @apiParam {Number} id post unique ID.
+    @apiParam {String} layout Draw algorithm.
+
+    @apiExample {curl} Example usage:
+    curl -i http://localhost:5000/draw/complete/FM^3%20(OGDF)
+
+    @apiSuccess {Json} object The graph in json format.
+    """
     def __init__(self, **kwargs):
         self.gid_stack = kwargs['gid_stack']
 

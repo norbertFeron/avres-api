@@ -9,6 +9,19 @@ parser = reqparse.RequestParser()
 
 
 class ComputeDOI(Resource):
+    """
+    @api {get} /doi/:graph_id/:type/:id?max_size=:max_size Create doi sub-graph
+    @apiName ComputeDOI
+    @apiGroup Tulip
+    @apiDescription Create a sub graph base on Degree of interest
+
+    @apiParam {Number} graph_id Base public graph id.
+    @apiParam {String} type Type of the target 'uid', 'pid' or 'cid'
+    @apiParam {Number} id Id of the target
+    @apiParam {Number} max_size Max size of the sub-graph
+
+    @apiSuccess {Json} The sub-graph in json format.
+    """
     def __init__(self, **kwargs):
         self.gid_stack = kwargs['gid_stack']
 

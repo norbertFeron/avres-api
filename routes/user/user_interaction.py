@@ -6,7 +6,7 @@ from routes.utils import addargs, makeResponse
 from graphtulip.createtlp import CreateTlp
 
 
-class ShortestPathBetweenUsers(Resource):
+class ShortestPathBetweenUsers(Resource): # todo repair this route
     def get(self, user1_id, user2_id, max_hop):
         req = "MATCH path=shortestPath((u1:user {uid: %d})-[*..%d]-(u2:user {uid: %d}))RETURN path" % (
             user1_id, max_hop, user2_id)

@@ -5,7 +5,17 @@ from routes.utils import addargs, addTimeFilter, makeResponse
 
 parser = reqparse.RequestParser()
 
+
 class GetPost(Resource):
+    """
+    @api {get} /post/:id Get post
+    @apiName GetPost
+    @apiGroup Post
+
+    @apiParam {Number} id Post unique ID.
+
+    @apiSuccess {Json} object The post.
+    """
     def get(self, post_id):
         result = neo4j.query_neo4j("MATCH (find:post {pid: %d}) RETURN find" % post_id)
         try:
@@ -15,6 +25,16 @@ class GetPost(Resource):
 
 
 class GetPostHydrate(Resource): # todo comments on comments (with author)
+    """
+    @api {get} /post/hydrate/:id Get post + author/comments
+    @apiName GetPostHydrate
+    @apiGroup Post
+    @apiDescription Get post info and his author/comments list
+
+    @apiParam {Number} id post unique ID.
+
+    @apiSuccess {Json} object The post.
+    """
     def get(self, post_id):
         req = "MATCH (find:post {pid: %d}) " % post_id
         req += "OPTIONAL MATCH (find)<-[:AUTHORSHIP]-(author:user) "
@@ -46,6 +66,17 @@ class GetPostHydrate(Resource): # todo comments on comments (with author)
 
 
 class GetPosts(Resource):
+    """
+    @api {get} /posts/?limit=:limit&orderBy:order Get posts
+    @apiName GetPosts
+    @apiGroup Post
+    @apiDescription Get all post
+
+    @apiParam {Number} [limit] Array size limit
+    @apiParam {String} [order=uid:desc] "field:[desc|asc]"
+
+    @apiSuccess {Json} array Posts list.
+    """
     def get(self):
         req = "MATCH (p:post) RETURN p.pid AS pid, p.title AS title"
         req += addargs()

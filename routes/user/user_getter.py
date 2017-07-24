@@ -6,7 +6,7 @@ from routes.utils import addargs, makeResponse
 
 class GetUser(Resource):
     """
-    @api {get} /user/:id Single user information
+    @api {get} /user/:id Get user
     @apiName GetUser
     @apiGroup User
 
@@ -25,7 +25,7 @@ class GetUser(Resource):
 
 class GetUserHydrate(Resource):
     """
-    @api {get} /user/hydrate/:id Single user information + posts/comments
+    @api {get} /user/hydrate/:id Get user + posts/comments
     @apiName GetUserHydrate
     @apiGroup User
     @apiDescription Get user info and his comments/posts list (only cid/pid, title and timestamp)
@@ -91,7 +91,7 @@ class GetUserHydrate(Resource):
 
 class GetUsers(Resource):
     """
-    @api {get} /users/?limit=:limit&orderBy:order Users lists
+    @api {get} /users/?limit=:limit&orderBy:order Get users
     @apiName GetUsers
     @apiGroup User
     @apiDescription Get all users
