@@ -81,14 +81,14 @@ def getJson(graph):
                 if prop.getEdgeValue(edge):
                     e["timestamp"] = prop.getEdgeValue(edge)
             # other
-            # elif prop.getEdgeDefaultStringValue() != prop.getEdgeStringValue(edge) \
-            #         and prop.getEdgeStringValue(edge):
-            #     value = prop.getEdgeStringValue(edge)\
-            #         .replace('"', '\\\"')\
-            #         .replace("\n", "\\n")\
-            #         .replace("\r", "\\r")\
-            #         .replace("\t", "\\t")
-            #     e[prop.getName()] = value
+            elif prop.getEdgeDefaultStringValue() != prop.getEdgeStringValue(edge) \
+                    and prop.getEdgeStringValue(edge):
+                value = prop.getEdgeStringValue(edge)\
+                    .replace('"', '\\\"')\
+                    .replace("\n", "\\n")\
+                    .replace("\r", "\\r")\
+                    .replace("\t", "\\t")
+                e[prop.getName()] = value
         # sigma id
         e["id"] = edge.id
         e["type"] = 'arrow'

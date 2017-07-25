@@ -27,6 +27,21 @@ class CreateGraph(Resource):
         return makeResponse({'gid': public_gid})
 
 
+class CreateLabelEdgeLabel(Resource):
+    def __init__(self, **kwargs):
+        self.gid_stack = kwargs['gid_stack']
+
+    def get(self, label1, edge, label2):
+        public_gid = str(int(time.time())) + uuid.uuid4().urn[19:]
+        private_gid = uuid.uuid4().urn[9:]
+        creator = CreateTlp()
+        params = (label1, edge, label2)
+        creator.createlabeledgelabel(params, private_gid)
+        checkTlpFiles(self.gid_stack)
+        self.gid_stack.update({public_gid: private_gid})
+        return makeResponse({'gid': public_gid})
+
+
 def checkTlpFiles(gid_stack):
     if len(gid_stack) > int(config['api']['max_tlp_files']) - 1:
         keys = gid_stack.copy()

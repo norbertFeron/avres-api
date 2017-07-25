@@ -93,17 +93,17 @@ class GetPropertyValueByLabel(Resource):
 
 
 class GetByLabel(Resource):
+    """
+       @api {get} /GetByLabel/:label Get elements by label 
+       @apiName GetByLabel
+       @apiGroup Getters
+       @apiDescription Get elements for a label, pass keys are arguments (* for all args)  
+       @apiParam {String} label Label
+       @apiParam {Keys} keys Keys wanted for each element
+       @apiParam {Filters} filter Filters on property
+       @apiSuccess {Array} result Array of element.
+    """
     def get(self, label):
-        """
-           @api {get} /GetByLabel/:label Get elements by label 
-           @apiName GetByLabel
-           @apiGroup Getters
-           @apiDescription Get elements for a label, pass keys are arguments (* for all args)  
-           @apiParam {String} label Label
-           @apiParam {Keys} keys Keys wanted for each element
-           @apiParam {Filters} filter Filters on property
-           @apiSuccess {Array} result Array of element.
-        """
         args = parser.parse_args()
         keys = args['keys']
         filters = args['filters']
@@ -134,20 +134,20 @@ class GetByLabel(Resource):
 
 
 class GetById(Resource):
+    """
+       @api {get} /GetById/:id Get element by id 
+       @apiName GetById
+       @apiGroup Getters
+       @apiDescription Get element by neo4j id, pass keys are arguments (* for all args)  
+       @apiParam {String} label Label
+       @apiParam {Args} keys Keys wanted for each element
+       @apiSuccess {Element} the element
+    """
     def get(self, id):
-        """
-           @api {get} /GetById/:id Get element by id 
-           @apiName GetById
-           @apiGroup Getters
-           @apiDescription Get element by neo4j id, pass keys are arguments (* for all args)  
-           @apiParam {String} label Label
-           @apiParam {Args} keys Keys wanted for each element
-           @apiSuccess {Element} the element
-        """
         args = parser.parse_args()
         keys = args['keys']
         query = "MATCH (n) WHERE ID(n) = %s RETURN ID(n) as id" % (id)
-        if '*' in keys:
+        if keys and '*' in keys:
             q = "MATCH (n) WHERE ID(n) = %s WITH n UNWIND labels(n) as l RETURN COLLECT(DISTINCT l) as labels" % id
             result = neo4j.query_neo4j(q)
             labels = result.single()['labels']

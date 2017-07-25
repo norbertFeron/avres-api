@@ -10,6 +10,7 @@ def add_tulip_routes(api):
 
     # Create
     api.add_resource(CreateGraph, '/createGraph/<string:field>/<int:value>', resource_class_kwargs={'gid_stack': gid_stack })
+    api.add_resource(CreateLabelEdgeLabel, '/createGraph/<string:label1>/<string:edge>/<string:label2>', resource_class_kwargs={'gid_stack': gid_stack})
 
     # Layout
     api.add_resource(GetLayoutAlgorithm, '/layoutAlgorithm')
