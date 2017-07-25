@@ -1,4 +1,5 @@
 from routes.generics.getters import *
+from routes.generics.setters import *
 
 
 def add_generics_routes(api):
@@ -15,3 +16,6 @@ def add_generics_routes(api):
     # GET Element(s)
     api.add_resource(GetByLabel, '/getByLabel/<string:label>')
     api.add_resource(GetById, '/getById/<int:id>')
+
+    # SET
+    api.add_resource(SetById, '/setById/<int:id>')
