@@ -42,8 +42,9 @@ class GetGraphLabelEdgeLabel(Resource):
        @apiName getGraph
        @apiGroup Graphs
        @apiDescription Get graph with field/value
-       @apiParam {String} field  ?
-       @apiParam {value} value ?
+       @apiParam {String} label first label
+       @apiParam {String} edge edge between
+       @apiParam {String} label second label
        @apiParam {layout} tulip layout algorithm to apply
        @apiSuccess {Graph} Graph in json format.
     """
