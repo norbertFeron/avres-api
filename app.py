@@ -11,9 +11,6 @@ from routes.settings.settings_routes import add_settings_routes
 config = configparser.ConfigParser()
 config.read("config.ini")
 
-if not os.path.exists(config['exporter']['tlp_path']):
-    os.makedirs(config['exporter']['tlp_path'])
-
 app = Flask(__name__)
 api = Api(app)
 

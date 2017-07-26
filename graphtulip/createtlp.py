@@ -12,13 +12,13 @@ class CreateTlp(object):
         self.tulip_graph = tlp.newGraph()
         self.tulip_graph.setName('graph-ryder-generated')
 
-    def create(self, params, private_gid):
+    def create(self, params):
         # todo read and create the graph
         params = tlp.getDefaultPluginParameters('Random General Graph')
         self.tulip_graph = tlp.importGraph('Random General Graph', params)
-        tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], private_gid))
+        return self.tulip_graph
 
-    def createlabeledgelabel(self, params, private_gid):
+    def createlabeledgelabel(self, params):
         property_id = self.tulip_graph.getIntegerProperty("neo4j_id")
         property_label = self.tulip_graph.getStringProperty("name")
         l1, e, l2 = params
@@ -46,4 +46,4 @@ class CreateTlp(object):
                 e = self.tulip_graph.addEdge(n1, n2)
                 property_id[e] = record['id_e']
                 property_label[e] = str(record['labels_e'])
-        tlp.saveGraph(self.tulip_graph, "%s%s.tlp" % (config['exporter']['tlp_path'], private_gid))
+        return self.tulip_graph

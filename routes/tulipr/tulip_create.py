@@ -3,54 +3,57 @@ import configparser
 import os
 import time
 from flask_restful import Resource, reqparse
-from routes.utils import makeResponse
+from routes.utils import makeResponse, getJson
 from graphtulip.createtlp import CreateTlp
+
 
 config = configparser.ConfigParser()
 config.read("config.ini")
 
 parser = reqparse.RequestParser()
+parser.add_argument('layout')
 
 
-class CreateGraph(Resource):
-    def __init__(self, **kwargs):
-        self.gid_stack = kwargs['gid_stack']
-
+class GetGraph(Resource):
+    """
+       @api {get} /getGraph/:field/:value get graph with ?
+       @apiName getGraph
+       @apiGroup Graphs
+       @apiDescription Get graph with field/value
+       @apiParam {String} field  ?
+       @apiParam {value} value ?
+       @apiParam {layout} tulip layout algorithm to apply
+       @apiSuccess {Graph} Graph in json format.
+    """
     def get(self, field, value):
-        public_gid = str(int(time.time())) + uuid.uuid4().urn[19:]
-        private_gid = uuid.uuid4().urn[9:]
         creator = CreateTlp()
         params = [(field, value)]
-        creator.create(params, private_gid)
-        checkTlpFiles(self.gid_stack)
-        self.gid_stack.update({public_gid: private_gid})
-        return makeResponse({'gid': public_gid})
+        graph = creator.create(params)
+        args = parser.parse_args()
+        if not args['layout']:
+            args['layout'] = config['api']['default_layout']
+        graph.applyLayoutAlgorithm(args['layout'])
+        return makeResponse(getJson(graph), 200)
 
 
-class CreateLabelEdgeLabel(Resource):
-    def __init__(self, **kwargs):
-        self.gid_stack = kwargs['gid_stack']
-
+class GetGraphLabelEdgeLabel(Resource):
+    """
+       @api {get} /getGraph/:label/:edge/label get graph with pattern label-edge->label 
+       @apiName getGraph
+       @apiGroup Graphs
+       @apiDescription Get graph with field/value
+       @apiParam {String} field  ?
+       @apiParam {value} value ?
+       @apiParam {layout} tulip layout algorithm to apply
+       @apiSuccess {Graph} Graph in json format.
+    """
     def get(self, label1, edge, label2):
-        public_gid = str(int(time.time())) + uuid.uuid4().urn[19:]
-        private_gid = uuid.uuid4().urn[9:]
         creator = CreateTlp()
         params = (label1, edge, label2)
-        creator.createlabeledgelabel(params, private_gid)
-        checkTlpFiles(self.gid_stack)
-        self.gid_stack.update({public_gid: private_gid})
-        return makeResponse({'gid': public_gid})
+        graph = creator.createlabeledgelabel(params)
+        args = parser.parse_args()
+        if not args['layout']:
+            args['layout'] = config['api']['default_layout']
+        graph.applyLayoutAlgorithm(args['layout'])
+        return makeResponse(getJson(graph), 200)
 
-
-def checkTlpFiles(gid_stack):
-    if len(gid_stack) > int(config['api']['max_tlp_files']) - 1:
-        keys = gid_stack.copy()
-        keys.pop('complete')
-        min = 9999999999
-        min_key = None
-        for key in keys:
-            if int(key[0:10]) < min:
-                min_key = key
-                min = int(key[0:10])
-        priv = gid_stack.pop(min_key)
-        os.remove('%s%s.tlp' % (config['exporter']['tlp_path'], priv))
