@@ -12,6 +12,8 @@ config.read("config.ini")
 
 parser = reqparse.RequestParser()
 parser.add_argument('layout')
+parser.add_argument('label_key_left')
+parser.add_argument('label_key_right')
 
 
 class GetGraph(Resource):
@@ -45,13 +47,36 @@ class GetGraphLabelEdgeLabel(Resource):
        @apiParam {String} label first label
        @apiParam {String} edge edge between
        @apiParam {String} label second label
-       @apiParam {layout} tulip layout algorithm to apply
+       @apiParam {String} layout tulip layout algorithm to apply
+       @apiParam {String} label_key_left key of the property to field label field of the left node
+       @apiParam {String} label_key_right key of the property to field label field of the right node
        @apiSuccess {Graph} Graph in json format.
     """
     def get(self, label1, edge, label2):
         creator = CreateTlp()
-        params = (label1, edge, label2)
-        graph = creator.createlabeledgelabel(params)
+        params = (label1, edge, label2, parser.parse_args())
+        graph = creator.createLabelEdgeLabel(params)
+        args = parser.parse_args()
+        if not args['layout']:
+            args['layout'] = config['api']['default_layout']
+        graph.applyLayoutAlgorithm(args['layout'])
+        return makeResponse(getJson(graph), 200)
+
+
+class GetGraphNeighboursById(Resource):
+    """
+       @api {get} /getGraphNeighboursById/:id/:edge get neighbours graph with id and edge type 
+       @apiName getGraphNeighboursById
+       @apiGroup Graphs
+       @apiDescription Get neighbours graph with id / edge type
+       @apiParam {String} edge edge between
+       @apiParam {String} layout tulip layout algorithm to apply
+       @apiSuccess {Graph} Graph in json format.
+    """
+    def get(self, id, edge):
+        creator = CreateTlp()
+        params = (id, edge, parser.parse_args())
+        graph = creator.createNeighboursById(params)
         args = parser.parse_args()
         if not args['layout']:
             args['layout'] = config['api']['default_layout']

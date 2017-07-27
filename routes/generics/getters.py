@@ -111,7 +111,7 @@ class GetPropertyValueByLabel(Resource):
         return makeResponse(result.single()['values'], 200)
 
 
-class GetByLabel(Resource):
+class GetByLabel(Resource):  # todo convert date node to readable date when hydrate
     """
        @api {get} /get/:label Get elements by label 
        @apiName GetByLabel
