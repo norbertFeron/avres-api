@@ -15,10 +15,8 @@ def add_generics_routes(api):
     api.add_resource(GetAttributesByLabel, '/getAttributes/<string:label>')
 
     # GET Element(s)
-    api.add_resource(GetByLabel, '/getByLabel/<string:label>')
-    api.add_resource(GetById, '/getById/<int:id>')
-    api.add_resource(GetWithAttributesByLabel, '/getWithAttr/<string:label>')
-    api.add_resource(GetWithAttributesById, '/getWithAttr/<int:id>')
+    api.add_resource(GetByLabel, '/get/<string:label>')
+    api.add_resource(GetById, '/get/<int:id>')
 
     # SET
-    api.add_resource(SetById, '/setById/<int:id>')
+    api.add_resource(SetById, '/set/<int:id>')

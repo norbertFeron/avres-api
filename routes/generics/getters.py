@@ -6,8 +6,9 @@ from routes.utils import makeResponse, addargs
 
 parser = reqparse.RequestParser()
 parser.add_argument('keys', action='append')
-parser.add_argument('attrs', action='append')
 parser.add_argument('filters', action='append')
+parser.add_argument('attrs', action='append')
+parser.add_argument('hydrate')
 
 
 class GetLabelsByLabel(Resource):
@@ -50,7 +51,7 @@ class GetLabelsById(Resource):
 
 class GetPropertiesByLabel(Resource):
     """
-       @api {get} /GetPropertiesByLabel/:label Get properties by label 
+       @api {get} /GetPropertiesbel Get properties by label 
        @apiName GetPropertiesByLabel
        @apiGroup Getters
        @apiDescription Get possible property for a label  
@@ -65,7 +66,7 @@ class GetPropertiesByLabel(Resource):
 
 class GetAttributesByLabel(Resource):
     """
-       @api {get} /GetAttributesByLabel/:label Get properties by label 
+       @api {get} /GetAttributes/:label Get properties by label 
        @apiName GetAttributesByLabel
        @apiGroup Getters
        @apiDescription Get possible attributes for a label  
@@ -80,7 +81,7 @@ class GetAttributesByLabel(Resource):
 
 class GetPropertyValue(Resource):
     """
-       @api {get} /GetPropertyValueByLabel/:label/:property Get value by property/label 
+       @api {get} /GetPropertyValue/:label/:property Get value by property/label 
        @apiName GetPropertyValueByLabel
        @apiGroup Getters
        @apiDescription Get possible property value for a label  
@@ -96,7 +97,7 @@ class GetPropertyValue(Resource):
 
 class GetPropertyValueByLabel(Resource):
     """
-       @api {get} /GetPropertyValueByLabel/:label/:property Get value by property/label 
+       @api {get} /GetPropertyValue/:label/:property Get value by property/label 
        @apiName GetPropertyValueByLabel
        @apiGroup Getters
        @apiDescription Get possible property value for a label  
@@ -112,12 +113,14 @@ class GetPropertyValueByLabel(Resource):
 
 class GetByLabel(Resource):
     """
-       @api {get} /GetByLabel/:label Get elements by label 
+       @api {get} /get/:label Get elements by label 
        @apiName GetByLabel
        @apiGroup Getters
-       @apiDescription Get elements for a label, pass keys are arguments (* for all args)  
+       @apiDescription Get elements for a label 
        @apiParam {String} label Label
-       @apiParam {Keys} keys Keys wanted for each element
+       @apiParam {keys} keys Keys wanted for each property of the element (* for all)
+       @apiParam {attrs} attr attributes wanted for each element (* for all)
+       @apiParam {hydrate} hydrate != 0 to hydrate attrs with info
        @apiParam {Filters} filter Filters on property
        @apiSuccess {Array} result Array of element.
     """
@@ -141,63 +144,13 @@ class GetByLabel(Resource):
                 query += ", n.%s as %s" % (key, key)
         query += addargs()
         result = neo4j.query_neo4j(query)
-        response = []
+        response = {}
         for record in result:
-            element = {'id': record['id']}
+            if not record['id'] in response.keys():
+                response[record['id']] = {}
             if keys:
                 for key in keys:
-                    element[key] = record[key]
-            response.append(element)
-        return makeResponse(response, 200)
-
-
-class GetById(Resource):
-    """
-       @api {get} /GetById/:id Get element by id 
-       @apiName GetById
-       @apiGroup Getters
-       @apiDescription Get element by neo4j id, pass keys are arguments (* for all args)  
-       @apiParam {String} label Label
-       @apiParam {Args} keys Keys wanted for each element
-       @apiSuccess {Element} the element
-    """
-    def get(self, id):
-        args = parser.parse_args()
-        keys = args['keys']
-        query = "MATCH (n) WHERE ID(n) = %s RETURN ID(n) as id" % (id)
-        if keys and '*' in keys:
-            q = "MATCH (n) WHERE ID(n) = %s WITH n UNWIND keys(n) as k RETURN COLLECT(DISTINCT k) as keys" % id
-            result = neo4j.query_neo4j(q)
-            keys = result.single()['keys']
-        if keys:
-            for key in keys:
-                query += ", n.%s as %s" % (key, key)
-        query += addargs()
-        result = neo4j.query_neo4j(query)
-        try:
-            res = result.single()
-        except ResultError:
-            return makeResponse("Imossible to find this id", 400)
-        element = {'id': res['id']}
-        if keys:
-            for key in keys:
-                element[key] = res[key]
-        return makeResponse(element, 200)
-
-
-class GetWithAttributesByLabel(Resource):
-    """
-       @api {get} /GetAttributeByLabel/:label Get attributes for elements by label
-       @apiName GetAttributeById
-       @apiGroup Getters
-       @apiDescription Get attributes of element by label, pass attrs are arguments (* for all)  
-       @apiParam {Integer} id id
-       @apiParam {attrs} attrs attrs wanted for each element
-       @apiSuccess {Array} List of elements
-    """
-    def get(self, label):
-        response = {}
-        args = parser.parse_args()
+                    response[record['id']][key] = record[key]
         attrs = args['attrs']
         if attrs and '*' in attrs:
             attrs = []
@@ -219,22 +172,64 @@ class GetWithAttributesByLabel(Resource):
                 for record in result:
                     if not record['id'] in response.keys():
                         response[record['id']] = {}
-                    response[record['id']][attribute] = record[attribute]
+                    if not args['hydrate'] or args['hydrate'] == str(0):
+                        response[record['id']][attribute] = record[attribute]
+                    else:
+                        response[record['id']][attribute] = []
+                        for a in record[attribute]:
+                            q = "MATCH (n) WHERE ID(n) = %s WITH n UNWIND keys(n) as k" % a
+                            q += " RETURN COLLECT(DISTINCT k) as keys"
+                            result = neo4j.query_neo4j(q)
+                            keys = result.single()['keys']
+                            query = "MATCH (n) WHERE ID(n) = %s RETURN ID(n) as id" % a
+                            for key in keys:
+                                query += ", n.%s as %s" % (key, key)
+                            result = neo4j.query_neo4j(query)
+                            try:
+                                res = result.single()
+                            except ResultError:
+                                return makeResponse("Impossible to find this id", 400)
+                            attr = {'id': res['id']}
+                            if keys:
+                                for key in keys:
+                                    attr[key] = res[key]
+                            response[record['id']][attribute].append(attr)
         return makeResponse(response, 200)
 
 
-class GetWithAttributesById(Resource):
+class GetById(Resource):
     """
-       @api {get} /GetAttributeById/:id Get attributes for an element by id 
-       @apiName GetAttributeById
+       @api {get} /get/:id Get an element by id 
+       @apiName GetById
        @apiGroup Getters
-       @apiDescription Get attributes of element by neo4j id, pass keys are arguments (* for all)  
+       @apiDescription Get element by neo4j id
        @apiParam {Integer} id id
-       @apiParam {Args} keys Keys wanted for each element
+       @apiParam {keys} keys Keys wanted for each property of the element (* for all)
+       @apiParam {attrs} attr attributes wanted for each element (* for all)
+       @apiParam {hydrate} hydrate != 0 to hydrate attrs with info
        @apiSuccess {Element} the element
     """
     def get(self, id):  # Multiple request
-        element = {'id': id}
+        args = parser.parse_args()
+        keys = args['keys']
+        query = "MATCH (n) WHERE ID(n) = %s RETURN ID(n) as id" % id
+        if keys and '*' in keys:
+            q = "MATCH (n) WHERE ID(n) = %s WITH n UNWIND keys(n) as k RETURN COLLECT(DISTINCT k) as keys" % id
+            result = neo4j.query_neo4j(q)
+            keys = result.single()['keys']
+        if keys:
+            for key in keys:
+                query += ", n.%s as %s" % (key, key)
+        query += addargs()
+        result = neo4j.query_neo4j(query)
+        try:
+            res = result.single()
+        except ResultError:
+            return makeResponse("Impossible to find this id", 400)
+        element = {'id': res['id']}
+        if keys:
+            for key in keys:
+                element[key] = res[key]
         args = parser.parse_args()
         attrs = args['attrs']
         if attrs and '*' in attrs:
@@ -249,7 +244,7 @@ class GetWithAttributesById(Resource):
                 attrs.append(a[0])  # Unpack
         if attrs:
             for attribute in attrs:
-                query = "MATCH (n) WHERE ID(n) = %s" % (id)
+                query = "MATCH (n) WHERE ID(n) = %s" % id
                 query += " WITH n"
                 query += " MATCH (n)-[:HAS]->(:Property)-[:IS]->(%s:%s)" % (attribute, attribute)
                 query += " RETURN collect(DISTINCT ID(%s)) as %s " % (attribute, attribute)
@@ -257,55 +252,26 @@ class GetWithAttributesById(Resource):
                 try:
                     res = result.single()
                 except ResultError:
-                    return makeResponse("Imossible to find this id", 400)
-                element[attribute] = res[attribute]
+                    return makeResponse("Impossible to find this id", 400)
+                if not args['hydrate'] or args['hydrate'] == 0:
+                    element[attribute] = res[attribute]
+                else:
+                    element[attribute] = []
+                    for a in res[attribute]:
+                        q = "MATCH (n) WHERE ID(n) = %s WITH n UNWIND keys(n) as k RETURN COLLECT(DISTINCT k) as keys" % a
+                        result = neo4j.query_neo4j(q)
+                        keys = result.single()['keys']
+                        query = "MATCH (n) WHERE ID(n) = %s RETURN ID(n) as id" % a
+                        for key in keys:
+                            query += ", n.%s as %s" % (key, key)
+                        result = neo4j.query_neo4j(query)
+                        try:
+                            res = result.single()
+                        except ResultError:
+                            return makeResponse("Impossible to find this id", 400)
+                        attr = {'id': res['id']}
+                        if keys:
+                            for key in keys:
+                                attr[key] = res[key]
+                        element[attribute].append(attr)
         return makeResponse(element, 200)
-
-# class GetAttributesById(Resource):
-#     """
-#        @api {get} /GetAttributeById/:id Get attributes for an element by id
-#        @apiName GetAttributeById
-#        @apiGroup Getters
-#        @apiDescription Get attributes of element by neo4j id, pass keys are arguments (* for all)
-#        @apiParam {Integer} id id
-#        @apiParam {Args} keys Keys wanted for each element
-#        @apiSuccess {Element} the element
-#     """
-#     def get(self, id):  # One unique request
-#         args = parser.parse_args()
-#         attrs = args['attrs']
-#         query = "MATCH (n) WHERE ID(n) = %s" % (id)
-#         if attrs and '*' in attrs:
-#             attrs = []
-#             q = "MATCH (n)-[:HAS]->(:Property)-[:IS]->(k)"
-#             q += " WHERE ID(n) = %s RETURN COLLECT(DISTINCT labels(k)) as attr" % id
-#             result = neo4j.query_neo4j(q)
-#             attributes = result.single()['attr']
-#             for a in attributes:
-#                 if 'Attribute' in a:
-#                     a.remove('Attribute')
-#                 attrs.append(a[0]) # Unpack
-#         if attrs:
-#             attrs_done = []
-#             for attribute in attrs:
-#                 query += " WITH n"
-#                 for a in attrs_done:
-#                     query += ", %s" % a
-#                 query += " MATCH (n)-[:HAS]->(:Property)-[:IS]->(%s:%s)" % (attribute, attribute)
-#                 attrs_done.append(attribute)
-#         query += " RETURN ID(n) AS id"
-#         if attrs:
-#             for attribute in attrs:
-#                 query += ", collect(DISTINCT ID(%s)) as %s " % (attribute, attribute)
-#         query += addargs()
-#         print(query)
-#         result = neo4j.query_neo4j(query)
-#         try:
-#             res = result.single()
-#         except ResultError:
-#             return makeResponse("Imossible to find this id", 400)
-#         element = {'id': res['id']}
-#         if attrs:
-#             for attribute in attrs:
-#                 element[attribute] = res[attribute]
-#         return makeResponse(element, 200)

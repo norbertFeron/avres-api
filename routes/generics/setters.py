@@ -12,7 +12,7 @@ parser.add_argument('filters', action='append')
 class SetById(Resource):
     def put(self, id):
         """
-          @api {put} /setById/:id Set by id 
+          @api {put} /set/:id Set by id 
           @apiName SetById
           @apiGroup Setters
           @apiDescription Modify a node
