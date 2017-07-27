@@ -9,6 +9,7 @@ def add_generics_routes(api):
     api.add_resource(GetLabelsById, '/getLabels/<int:id>')  # todo usefull ?
 
     api.add_resource(GetPropertiesByLabel, '/getProperties/<string:label>')
+    api.add_resource(GetPropertyValue, '/getPropertyValue/<string:key>')
     api.add_resource(GetPropertyValueByLabel, '/getPropertyValue/<string:label>/<string:key>')
 
     api.add_resource(GetAttributesByLabel, '/getAttributes/<string:label>')

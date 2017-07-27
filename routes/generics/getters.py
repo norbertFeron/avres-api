@@ -78,6 +78,22 @@ class GetAttributesByLabel(Resource):
         return makeResponse(result.single()['attr'], 200)
 
 
+class GetPropertyValue(Resource):
+    """
+       @api {get} /GetPropertyValueByLabel/:label/:property Get value by property/label 
+       @apiName GetPropertyValueByLabel
+       @apiGroup Getters
+       @apiDescription Get possible property value for a label  
+       @apiParam {String} label Label
+       @apiParam {String} property Property
+       @apiSuccess {Array} result Array of value.
+    """
+    def get(self, key):
+        query = "MATCH (n) RETURN COLLECT(DISTINCT n.%s) as values" % key
+        result = neo4j.query_neo4j(query)
+        return makeResponse(result.single()['values'], 200)
+
+
 class GetPropertyValueByLabel(Resource):
     """
        @api {get} /GetPropertyValueByLabel/:label/:property Get value by property/label 
