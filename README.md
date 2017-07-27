@@ -27,11 +27,11 @@ python app.py
 ```
 
 ## Docker Installation
-####3. build
+####2. build
 ```
 docker build -t graph-ryder-api .
 ```
-####4. run
+####3. run
 ```
 docker run -d -p 5000:5000 --name my-graph-ryder-api graph-ryder-api
 ```
