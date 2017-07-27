@@ -155,14 +155,14 @@ def addStep(data):
     trace.applyLayoutAlgorithm("Tree Leaf", trace.getLocalLayoutProperty("viewLayout"), params)
     # trace.applyLayoutAlgorithm("OrthoTree", trace.getLocalLayoutProperty("viewLayout"), params)
 
-    # Apply color scale en edges
-    params = tlp.getDefaultPluginParameters('Color Mapping', trace)
-    colors = [tlp.Color.Blue, tlp.Color.Red]
-    colorScale = tlp.ColorScale(colors)
-    params['color scale'] = colorScale
-    params['input property'] = timestamp
-    params['target'] = "edges"
-    trace.applyColorAlgorithm('Color Mapping', params)
+    # Apply color scale en edges  # todo reactivate when pip tulip 5.1 is ready
+    # params = tlp.getDefaultPluginParameters('Color Mapping', trace)
+    # colors = [tlp.Color.Blue, tlp.Color.Red]
+    # colorScale = tlp.ColorScale(colors)
+    # params['color scale'] = colorScale
+    # params['input property'] = timestamp
+    # params['target'] = "edges"
+    # trace.applyColorAlgorithm('Color Mapping', params)
 
     # Apply layout on the graph
     params = tlp.getDefaultPluginParameters(data['layout'], result)
