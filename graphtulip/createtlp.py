@@ -45,7 +45,7 @@ class CreateTlp(object):
                 n2 = self.tulip_graph.addNode()
                 property_id[n2] = record['id_2']
                 if 'label_right' in record.keys() and record['label_right']:
-                    property_label[n1] = record['label_right']
+                    property_label[n2] = record['label_right']
                 nodes_done[record['id_2']] = n2
             else:
                 n2 = nodes_done[record['id_2']]
