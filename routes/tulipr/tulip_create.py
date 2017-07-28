@@ -3,7 +3,7 @@ import configparser
 import os
 import time
 from flask_restful import Resource, reqparse
-from routes.utils import makeResponse, getJson
+from routes.utils import makeResponse, getJson, getHtml, makeHtmlResponse
 from graphtulip.createtlp import CreateTlp
 
 
@@ -12,6 +12,7 @@ config.read("config.ini")
 
 parser = reqparse.RequestParser()
 parser.add_argument('layout')
+parser.add_argument('format')
 parser.add_argument('label_key_left')
 parser.add_argument('label_key_right')
 
@@ -60,8 +61,10 @@ class GetGraphLabelEdgeLabel(Resource):
         if not args['layout']:
             args['layout'] = config['api']['default_layout']
         graph.applyLayoutAlgorithm(args['layout'])
-        return makeResponse(getJson(graph), 200)
-
+        if args['format'] == 'html':
+            return makeHtmlResponse(getHtml(graph), 200)
+        else:
+            return makeResponse(getJson(graph), 200)
 
 class GetGraphNeighboursById(Resource):
     """
@@ -81,5 +84,8 @@ class GetGraphNeighboursById(Resource):
         if not args['layout']:
             args['layout'] = config['api']['default_layout']
         graph.applyLayoutAlgorithm(args['layout'])
-        return makeResponse(getJson(graph), 200)
+        if args['format'] == 'html':
+            return makeHtmlResponse(getHtml(graph), 200)
+        else:
+            return makeResponse(getJson(graph), 200)
 

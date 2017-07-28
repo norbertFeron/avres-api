@@ -21,6 +21,7 @@ class CreateTlp(object):
     def createLabelEdgeLabel(self, params):
         property_id = self.tulip_graph.getIntegerProperty("neo4j_id")
         property_label = self.tulip_graph.getStringProperty("name")
+        property_color = self.tulip_graph.getColorProperty("viewColor")
         l1, e, l2, args = params
         query = "MATCH (n1:%s)-[]->(e:%s)-[]->(n2:%s) RETURN ID(n1) as id_1" % (l1, e, l2)
         if args['label_key_left']:
@@ -36,6 +37,7 @@ class CreateTlp(object):
             if record['id_1'] not in nodes_done:
                 n1 = self.tulip_graph.addNode()
                 property_id[n1] = record['id_1']
+                property_color[n1] = tlp.Color(44, 162, 95)
                 if 'label_left' in record.keys() and record['label_left']:
                     property_label[n1] = record['label_left']
                 nodes_done[record['id_1']] = n1
@@ -44,6 +46,7 @@ class CreateTlp(object):
             if record['id_2'] not in nodes_done:
                 n2 = self.tulip_graph.addNode()
                 property_id[n2] = record['id_2']
+                property_color[n2] = tlp.Color(44, 162, 95)
                 if 'label_right' in record.keys() and record['label_right']:
                     property_label[n2] = record['label_right']
                 nodes_done[record['id_2']] = n2
@@ -53,11 +56,13 @@ class CreateTlp(object):
                 e = self.tulip_graph.addEdge(n1, n2)
                 property_id[e] = record['id_e']
                 property_label[e] = str(record['labels_e'])
+                property_color[e] = tlp.Color(153, 216, 201)
         return self.tulip_graph
 
     def createNeighboursById(self, params):  # todo add level of depth
         property_id = self.tulip_graph.getIntegerProperty("neo4j_id")
         property_label = self.tulip_graph.getStringProperty("name")
+        property_color = self.tulip_graph.getColorProperty("viewColor")
         id, e, args = params
         query = "MATCH (n) WHERE ID(n) = %s WITH n MATCH (n)-[]-(e:%s)-[]-(neigh)" % (id, e)
         query += " RETURN ID(n) as id_target"
@@ -86,5 +91,6 @@ class CreateTlp(object):
                 e = self.tulip_graph.addEdge(t, n)  # todo manage edge direction
                 property_id[e] = record['id_e']
                 property_label[e] = str(record['labels_e'])
+                property_color[e] = tlp.Color(51, 122, 183)
             #  todo link neighbours together
         return self.tulip_graph
