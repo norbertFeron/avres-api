@@ -63,7 +63,7 @@ class CreateTlp(object):
         property_id = self.tulip_graph.getIntegerProperty("neo4j_id")
         property_label = self.tulip_graph.getStringProperty("name")
         property_color = self.tulip_graph.getColorProperty("viewColor")
-        id, e, args = params
+        id, e, label, args = params
         nodes_done = {}
         edges_done = []
 
@@ -74,6 +74,7 @@ class CreateTlp(object):
                     t = self.tulip_graph.addNode()
                     property_id[t] = record['id_target']
                     property_label[t] = str(record['id_target'])
+                    property_color[t] = tlp.Color(44, 162, 95)
                     nodes_done[record['id_target']] = t
                 else:
                     t = nodes_done[record['id_target']]
@@ -81,6 +82,7 @@ class CreateTlp(object):
                     n = self.tulip_graph.addNode()
                     property_id[n] = record['id_neigh']
                     property_label[n] = str(record['id_neigh'])
+                    property_color[n] = tlp.Color(44, 162, 95)
                     #  todo add labels(neigh) result
                     nodes_done[record['id_neigh']] = n
                 else:
@@ -92,25 +94,45 @@ class CreateTlp(object):
                         e = self.tulip_graph.addEdge(n, t)
                     property_id[e] = record['id_e']
                     property_label[e] = str(record['labels_e'])
-                    property_color[e] = tlp.Color(51, 122, 183)
+                    property_color[e] = tlp.Color(153, 216, 201)
 
-        query = "MATCH (n) WHERE ID(n) = %s WITH n MATCH (n)-[]->(e:%s)-[]->(neigh)" % (id, e)
+        query = "MATCH (n) WHERE ID(n) = %s WITH n MATCH (n)-[]->(e:%s)-[]->(neigh:%s)" % (id, e, label)
         query += " RETURN ID(n) as id_target"
         query += ", ID(e) as id_e, labels(e) as labels_e"
         query += ", ID(neigh) as id_neigh, labels(neigh) as label_neigh"
 
         execute_query(query, False)
 
-        query = "MATCH (n) WHERE ID(n) = %s WITH n MATCH (n)<-[]-(e:%s)<-[]-(neigh)" % (id, e)
+        query = "MATCH (n) WHERE ID(n) = %s WITH n MATCH (n)<-[]-(e:%s)<-[]-(neigh:%s)" % (id, e, label)
         query += " RETURN ID(n) as id_target"
         query += ", ID(e) as id_e, labels(e) as labels_e"
         query += ", ID(neigh) as id_neigh, labels(neigh) as label_neigh"
 
         execute_query(query, True)
 
+        if args['depth']:
+            #  todo correct depth only works when n is same label as neigh
+            i = 1
+            while i < int(args['depth']):
+                i += 1
+                nodes_id = list(nodes_done.keys())
+                for id_neigh in nodes_id:
+                    query = "MATCH (n) WHERE ID(n) = %s WITH n MATCH (n)-[]->(e:%s)-[]->(neigh:%s)" % (id_neigh, e, label)
+                    query += " RETURN ID(n) as id_target"
+                    query += ", ID(e) as id_e, labels(e) as labels_e"
+                    query += ", ID(neigh) as id_neigh, labels(neigh) as label_neigh"
+                    execute_query(query, False)
+
+                    query = "MATCH (n) WHERE ID(n) = %s WITH n MATCH (n)<-[]-(e:%s)<-[]-(neigh:%s)" % (id_neigh, e, label)
+                    query += " RETURN ID(n) as id_target"
+                    query += ", ID(e) as id_e, labels(e) as labels_e"
+                    query += ", ID(neigh) as id_neigh, labels(neigh) as label_neigh"
+                    execute_query(query, True)
+
         nodes_id = list(nodes_done.keys())
         for id_neigh in nodes_id:
-            query = "MATCH (n) WHERE ID(n) = %s WITH n MATCH (n)-[]->(e:%s)-[]->(neigh) WHERE ID(neigh) IN %s" % (id_neigh, e, nodes_id)
+            query = "MATCH (n) WHERE ID(n) = %s WITH n " % id_neigh
+            query += "MATCH (n)-[]->(e:%s)-[]->(neigh) WHERE ID(neigh) IN %s" % (e, nodes_id)
             query += " RETURN ID(n) as id_target"
             query += ", ID(e) as id_e, labels(e) as labels_e"
             query += ", ID(neigh) as id_neigh, labels(neigh) as label_neigh"

@@ -2,6 +2,7 @@ import uuid
 import configparser
 import os
 import time
+from tulip import tlp
 from flask_restful import Resource, reqparse
 from routes.utils import makeResponse, getJson, getHtml, makeHtmlResponse
 from graphtulip.createtlp import CreateTlp
@@ -13,6 +14,7 @@ config.read("config.ini")
 parser = reqparse.RequestParser()
 parser.add_argument('layout')
 parser.add_argument('format')
+parser.add_argument('depth')
 parser.add_argument('label_key_left')
 parser.add_argument('label_key_right')
 
@@ -33,9 +35,7 @@ class GetGraph(Resource):
         params = [(field, value)]
         graph = creator.create(params)
         args = parser.parse_args()
-        if not args['layout']:
-            args['layout'] = config['api']['default_layout']
-        graph.applyLayoutAlgorithm(args['layout'])
+        applyLayout(graph, args['layout'])
         return makeResponse(getJson(graph), 200)
 
 
@@ -59,9 +59,7 @@ class GetGraphLabelEdgeLabel(Resource):
         params = (label1, edge, label2, parser.parse_args())
         graph = creator.createLabelEdgeLabel(params)
         args = parser.parse_args()
-        if not args['layout']:
-            args['layout'] = config['api']['default_layout']
-        graph.applyLayoutAlgorithm(args['layout'])
+        applyLayout(graph, args['layout'])
         if args['format'] == 'html':
             return makeHtmlResponse(getHtml(graph), 200)
         else:
@@ -86,9 +84,9 @@ class GetGraphNeighboursById(Resource):
        @apiParam {String} layout tulip layout algorithm to apply
        @apiSuccess {Graph} Graph in json format.
     """
-    def get(self, id, edge):
+    def get(self, id, edge, label):
         creator = CreateTlp()
-        params = (id, edge, parser.parse_args())
+        params = (id, edge, label, parser.parse_args())
         graph = creator.createNeighboursById(params)
         args = parser.parse_args()
         if not args['layout']:
@@ -99,3 +97,10 @@ class GetGraphNeighboursById(Resource):
         else:
             return makeResponse(getJson(graph), 200)
 
+
+def applyLayout(graph, layout):
+    if not layout:
+        layout = config['api']['default_layout']
+    tlp.setSeedOfRandomSequence(12345)
+    tlp.initRandomSequence()
+    graph.applyLayoutAlgorithm(layout)
