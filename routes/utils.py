@@ -159,7 +159,7 @@ def getJson(graph):
 def getHtml(graph):
     # html skeleton
     html = '<div id="container">\n'
-    html += '\t<style> #graph-container {top: 0;bottom: 0;left: 0;right: 0;position: absolute;}</style>\n'
+    html += '\t<style> #graph-container {top: 10;bottom: 10;left: 10;right: 10;position: absolute;}</style>\n'
     html += '\t<div id="graph-container"></div>\n'
     html += '</div>\n'
     # sigma lib

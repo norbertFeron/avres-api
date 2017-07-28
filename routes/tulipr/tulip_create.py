@@ -49,6 +49,7 @@ class GetGraphLabelEdgeLabel(Resource):
        @apiParam {String} edge edge between
        @apiParam {String} label second label
        @apiParam {String} layout tulip layout algorithm to apply
+       @apiParam {String} format html for html quick preview
        @apiParam {String} label_key_left key of the property to field label field of the left node
        @apiParam {String} label_key_right key of the property to field label field of the right node
        @apiSuccess {Graph} Graph in json format.
@@ -66,8 +67,17 @@ class GetGraphLabelEdgeLabel(Resource):
         else:
             return makeResponse(getJson(graph), 200)
 
+
 class GetGraphNeighboursById(Resource):
     """
+        @api {get} /getGraphNeighboursById/:id/:edge get neighbours graph with id and edge type 
+        @apiName getGraphNeighboursById
+        @apiGroup Graphs
+        @apiDescription Get neighbours graph with id / edge type
+        @apiParam {String} edge edge between
+        @apiParam {String} format html for html quick preview
+        @apiParam {String} layout tulip layout algorithm to apply
+        @apiSuccess {Graph} Graph in json format.
        @api {get} /getGraphNeighboursById/:id/:edge get neighbours graph with id and edge type 
        @apiName getGraphNeighboursById
        @apiGroup Graphs

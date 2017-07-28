@@ -64,33 +64,57 @@ class CreateTlp(object):
         property_label = self.tulip_graph.getStringProperty("name")
         property_color = self.tulip_graph.getColorProperty("viewColor")
         id, e, args = params
-        query = "MATCH (n) WHERE ID(n) = %s WITH n MATCH (n)-[]-(e:%s)-[]-(neigh)" % (id, e)
+        nodes_done = {}
+        edges_done = []
+
+        def execute_query(query, target_to_neigh):
+            result = neo4j.query_neo4j(query)
+            for record in result:
+                if record['id_target'] not in nodes_done:
+                    t = self.tulip_graph.addNode()
+                    property_id[t] = record['id_target']
+                    property_label[t] = str(record['id_target'])
+                    nodes_done[record['id_target']] = t
+                else:
+                    t = nodes_done[record['id_target']]
+                if record['id_neigh'] not in nodes_done:
+                    n = self.tulip_graph.addNode()
+                    property_id[n] = record['id_neigh']
+                    property_label[n] = str(record['id_neigh'])
+                    #  todo add labels(neigh) result
+                    nodes_done[record['id_neigh']] = n
+                else:
+                    n = nodes_done[record['id_neigh']]
+                if record['id_e'] not in edges_done:
+                    if target_to_neigh:
+                        e = self.tulip_graph.addEdge(t, n)
+                    else:
+                        e = self.tulip_graph.addEdge(n, t)
+                    property_id[e] = record['id_e']
+                    property_label[e] = str(record['labels_e'])
+                    property_color[e] = tlp.Color(51, 122, 183)
+
+        query = "MATCH (n) WHERE ID(n) = %s WITH n MATCH (n)-[]->(e:%s)-[]->(neigh)" % (id, e)
         query += " RETURN ID(n) as id_target"
         query += ", ID(e) as id_e, labels(e) as labels_e"
         query += ", ID(neigh) as id_neigh, labels(neigh) as label_neigh"
-        result = neo4j.query_neo4j(query)
-        nodes_done = {}
-        edges_done = []
-        for record in result:
-            if record['id_target'] not in nodes_done:
-                t = self.tulip_graph.addNode()
-                property_id[t] = record['id_target']
-                property_label[t] = str(record['id_target'])
-                nodes_done[record['id_target']] = t
-            else:
-                t = nodes_done[record['id_target']]
-            if record['id_neigh'] not in nodes_done:
-                n = self.tulip_graph.addNode()
-                property_id[n] = record['id_neigh']
-                property_label[n] = str(record['id_neigh'])
-                #  todo add labels(neigh) result
-                nodes_done[record['id_neigh']] = n
-            else:
-                n = nodes_done[record['id_neigh']]
-            if record['id_e'] not in edges_done:
-                e = self.tulip_graph.addEdge(t, n)  # todo manage edge direction
-                property_id[e] = record['id_e']
-                property_label[e] = str(record['labels_e'])
-                property_color[e] = tlp.Color(51, 122, 183)
-            #  todo link neighbours together
+
+        execute_query(query, False)
+
+        query = "MATCH (n) WHERE ID(n) = %s WITH n MATCH (n)<-[]-(e:%s)<-[]-(neigh)" % (id, e)
+        query += " RETURN ID(n) as id_target"
+        query += ", ID(e) as id_e, labels(e) as labels_e"
+        query += ", ID(neigh) as id_neigh, labels(neigh) as label_neigh"
+
+        execute_query(query, True)
+
+        nodes_id = list(nodes_done.keys())
+        for id_neigh in nodes_id:
+            query = "MATCH (n) WHERE ID(n) = %s WITH n MATCH (n)-[]->(e:%s)-[]->(neigh) WHERE ID(neigh) IN %s" % (id_neigh, e, nodes_id)
+            query += " RETURN ID(n) as id_target"
+            query += ", ID(e) as id_e, labels(e) as labels_e"
+            query += ", ID(neigh) as id_neigh, labels(neigh) as label_neigh"
+
+            execute_query(query, False)
+
         return self.tulip_graph
