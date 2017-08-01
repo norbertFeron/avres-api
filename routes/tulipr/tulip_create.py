@@ -4,7 +4,7 @@ import os
 import time
 from tulip import tlp
 from flask_restful import Resource, reqparse
-from routes.utils import makeResponse, getJson, getHtml, makeHtmlResponse
+from routes.utils import makeResponse, getJson, getHtml, makeHtmlResponse, applyLayout
 from graphtulip.createtlp import CreateTlp
 
 
@@ -30,9 +30,9 @@ class GetGraph(Resource):
        @apiParam {layout} tulip layout algorithm to apply
        @apiSuccess {Graph} Graph in json format.
     """
-    def get(self, field, value):
+    def get(self):
         creator = CreateTlp()
-        params = [(field, value)]
+        params = []
         graph = creator.create(params)
         args = parser.parse_args()
         applyLayout(graph, args['layout'])
@@ -91,16 +91,8 @@ class GetGraphNeighboursById(Resource):
         args = parser.parse_args()
         if not args['layout']:
             args['layout'] = config['api']['default_layout']
-        graph.applyLayoutAlgorithm(args['layout'])
+        applyLayout(graph, args['layout'])
         if args['format'] == 'html':
             return makeHtmlResponse(getHtml(graph), 200)
         else:
             return makeResponse(getJson(graph), 200)
-
-
-def applyLayout(graph, layout):
-    if not layout:
-        layout = config['api']['default_layout']
-    tlp.setSeedOfRandomSequence(12345)
-    tlp.initRandomSequence()
-    graph.applyLayoutAlgorithm(layout)

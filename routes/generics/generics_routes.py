@@ -5,6 +5,7 @@ from routes.generics.setters import *
 def add_generics_routes(api):
 
     # GET
+    api.add_resource(GetLabels, '/getLabels/')
     api.add_resource(GetLabelsByLabel, '/getLabels/<string:label>')
     api.add_resource(GetLabelsById, '/getLabels/<int:id>')  # todo usefull ?
 

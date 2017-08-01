@@ -1,6 +1,11 @@
 from flask_restful import reqparse
 from flask import make_response
+from tulip import tlp
+import configparser
 import json
+
+config = configparser.ConfigParser()
+config.read("config.ini")
 
 parser = reqparse.RequestParser()
 parser.add_argument('limit')
@@ -45,6 +50,14 @@ def addTimeFilter():
     if not args['start'] and args['end']:
         req += "WHERE %s >= p.timestamp " % args['end']
     return req
+
+
+def applyLayout(graph, layout):
+    if not layout:
+        layout = config['api']['default_layout']
+    tlp.setSeedOfRandomSequence(12345)
+    tlp.initRandomSequence()
+    graph.applyLayoutAlgorithm(layout)
 
 
 def makeResponse(result, code=200, file=False):

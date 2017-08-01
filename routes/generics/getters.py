@@ -11,10 +11,25 @@ parser.add_argument('attrs', action='append')
 parser.add_argument('hydrate')
 
 
+class GetLabels(Resource):
+    """
+      @api {get} /getLabels/ Get all labels
+      @apiName GetLabels
+      @apiGroup Getters
+      @apiDescription Return the list of possible labels.
+      @apiParam {String} label Label
+      @apiSuccess {Array} result Array of labels
+   """
+    def get(self):
+        query = "MATCH (n) WITH n UNWIND labels(n) as l RETURN COLLECT(DISTINCT l) as labels"
+        result = neo4j.query_neo4j(query)
+        return makeResponse(result.single()['labels'], 200)
+
+
 class GetLabelsByLabel(Resource):
     """
       @api {get} /getLabels/:label Get labels by label 
-      @apiName GetLabels
+      @apiName GetLabelsByLabel
       @apiGroup Getters
       @apiDescription Return the list of possible labels for a generic one.
       @apiParam {String} label Label
