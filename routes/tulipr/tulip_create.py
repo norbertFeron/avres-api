@@ -19,7 +19,7 @@ parser.add_argument('label_key_left')
 parser.add_argument('label_key_right')
 
 
-class GetGraph(Resource):
+class GetRandomGraph(Resource):
     """
        @api {get} /getGraph/:field/:value get graph with ?
        @apiName getGraph
@@ -35,7 +35,8 @@ class GetGraph(Resource):
         params = []
         graph = creator.create(params)
         args = parser.parse_args()
-        applyLayout(graph, args['layout'])
+        if args['layout']:
+            applyLayout(graph, args['layout'])
         return makeResponse(getJson(graph), 200)
 
 

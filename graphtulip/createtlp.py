@@ -2,6 +2,7 @@ from connector import neo4j
 from tulip import *
 import configparser
 import names
+import random
 
 config = configparser.ConfigParser()
 config.read("config.ini")
@@ -15,8 +16,11 @@ class CreateTlp(object):
 
     def create(self, params):
         # todo read and create the graph
-        params = tlp.getDefaultPluginParameters('Grid Approximation')
-        self.tulip_graph = tlp.importGraph('Grid Approximation', params)
+        params = tlp.getDefaultPluginParameters('Planar Graph')
+        params['nodes'] = 30
+        tlp.setSeedOfRandomSequence(random.getrandbits(10))
+        tlp.initRandomSequence()
+        self.tulip_graph = tlp.importGraph('Planar Graph', params)
         property_label = self.tulip_graph.getStringProperty("name")
         property_color = self.tulip_graph.getColorProperty("viewColor")
         for node in self.tulip_graph.nodes():
