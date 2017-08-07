@@ -4,6 +4,8 @@ from connector import neo4j
 from flask_restful import Resource, reqparse
 from routes.utils import makeResponse, addargs
 
+import copy
+
 parser = reqparse.RequestParser()
 parser.add_argument('keys', action='append')
 parser.add_argument('filters', action='append')
@@ -24,6 +26,67 @@ class GetLabels(Resource):
         query = "MATCH (n) WITH n UNWIND labels(n) as l RETURN COLLECT(DISTINCT l) as labels"
         result = neo4j.query_neo4j(query)
         return makeResponse(result.single()['labels'], 200)
+
+
+class GetLabelsHierarchy(Resource):
+    """
+      @api {get} /getLabelshierarchy/ Get all labels
+      @apiName GetLabels
+      @apiGroup Getters
+      @apiDescription Return the list of possible labels.
+      @apiParam {String} label Label
+      @apiSuccess {Array} result Array of labels
+   """
+    def get(self):
+        hierarchy = {}
+        query = "MATCH (n) RETURN DISTINCT labels(n) as labels"
+        result = neo4j.query_neo4j(query)
+        labels_list = []
+        for record in result:
+            labels_list.append(record['labels'])
+        for labels in labels_list:
+            #if len(labels) == 1:
+                # hierarchy[labels[0]] = [0]
+            if len(labels) > 1:
+                for label in labels:
+                    count = 0
+                    for l in labels_list:
+                        if label in l:
+                            count += 1
+                    hierarchy[label] = [count]
+        for labels in labels_list:
+            if len(labels) == 2:
+                if hierarchy[labels[0]][0] > hierarchy[labels[1]][0]:
+                    hierarchy[labels[0]].append({labels[1]: []})
+                    hierarchy[labels[1]][0] = -1
+                    # hierarchy.pop(labels[1])
+                elif hierarchy[labels[0]][0] < hierarchy[labels[1]][0]:
+                    hierarchy[labels[1]].append({labels[0]: []})
+                    hierarchy[labels[0]][0] = -1
+                    # hierarchy.pop(labels[0])
+            if len(labels) > 2:
+                max = labels[0]
+                for l in labels:
+                    if hierarchy[l][0] > hierarchy[max][0]:
+                        max = l
+                labels.pop(labels.index(max))
+                max2 = labels[0]
+                for l in labels:
+                    if hierarchy[l][0] > hierarchy[max2][0]:
+                        max2 = l
+                labels.pop(labels.index(max2))
+                if not max2 in hierarchy[max][1].keys():
+                    hierarchy[max][1][max2] = []
+                for l in labels:
+                    hierarchy[max][1][max2].append({l : []})
+                    hierarchy[l][0] = -1
+        keys = []
+        for key in hierarchy.keys():
+            if hierarchy[key][0] == -1:
+                keys.append(key)
+        for key in keys:
+            hierarchy.pop(key)
+        return makeResponse(hierarchy, 200)
 
 
 class GetLabelsByLabel(Resource):
