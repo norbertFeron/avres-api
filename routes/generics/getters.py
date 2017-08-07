@@ -42,11 +42,12 @@ class GetLabelsHierarchy(Resource):
         query = "MATCH (n) RETURN DISTINCT labels(n) as labels"
         result = neo4j.query_neo4j(query)
         labels_list = []
+        groupId = 0
         for record in result:
             labels_list.append(record['labels'])
         for labels in labels_list:
-            #if len(labels) == 1:
-                # hierarchy[labels[0]] = [0]
+            if len(labels) == 1:
+                hierarchy[labels[0]] = [0]
             if len(labels) > 1:
                 for label in labels:
                     count = 0
@@ -64,6 +65,11 @@ class GetLabelsHierarchy(Resource):
                     hierarchy[labels[1]].append({labels[0]: []})
                     hierarchy[labels[0]][0] = -1
                     # hierarchy.pop(labels[0])
+                else:
+                    hierarchy["group" + str(groupId)] = [0]
+                    hierarchy["group" + str(groupId)].append({labels[1]: []})
+                    hierarchy["group" + str(groupId)].append({labels[0]: []})
+                    groupId += 1
             if len(labels) > 2:
                 max = labels[0]
                 for l in labels:
