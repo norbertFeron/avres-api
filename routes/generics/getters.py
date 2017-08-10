@@ -90,6 +90,9 @@ class GetLabelsHierarchy(Resource):
         for key in hierarchy.keys():
             if hierarchy[key][0] == -1:
                 keys.append(key)
+            if hierarchy[key][0] > 1 and len(hierarchy[key]) == 1:
+                keys.append(key)
+            hierarchy[key].pop(0)
         for key in keys:
             hierarchy.pop(key)
         return makeResponse(hierarchy, 200)

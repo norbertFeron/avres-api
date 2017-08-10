@@ -1,5 +1,6 @@
 from routes.generics.getters import *
 from routes.generics.setters import *
+from routes.generics.counters import *
 
 
 def add_generics_routes(api):
@@ -22,3 +23,6 @@ def add_generics_routes(api):
 
     # SET
     api.add_resource(SetById, '/set/<int:id>')
+
+    # COUNT
+    api.add_resource(CountLabel, '/countLabel/<string:label>')
