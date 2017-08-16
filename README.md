@@ -1,6 +1,6 @@
 # Graph Ryder Api
 This is a simple Rest full Api to interact with neo4j database using the tulip-python library.
-Big computation are made server side to provide a light weight ui: [https://github.com/norbertFeron/graph-ryder-dashboard](Graph ryder dashboard)
+Big computation are made server side to provide a light weight ui: [GraphRyderDashboard](https://github.com/norbertFeron/graph-ryder-dashboard)
 
 ####1. change config file
 ```
