@@ -112,7 +112,7 @@ class CreateTlp(object):
                 if record['id_neigh'] not in nodes_done:
                     n = self.tulip_graph.addNode()
                     property_id[n] = record['id_neigh']
-                    if record['label_neigh']:
+                    if record['label_neigh'] and type(record['label_neigh']) is str:
                         property_label[n] = record['label_neigh']
                     else:
                         property_label[n] = str(record['id_neigh'])
