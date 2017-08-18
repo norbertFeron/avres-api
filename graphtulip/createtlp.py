@@ -35,7 +35,7 @@ class CreateTlp(object):
         property_label = self.tulip_graph.getStringProperty("name")
         property_color = self.tulip_graph.getColorProperty("viewColor")
         l1, e, l2, args = params
-        query = "MATCH (n1:%s)-[]->(e:%s)-[]->(n2:%s) RETURN ID(n1) as id_1" % (l1, e, l2)
+        query = "MATCH (n1:%s)-[]-(e:%s)-[]-(n2:%s) RETURN ID(n1) as id_1" % (l1, e, l2)
         if args['label_key_left']:
             query += ", n1.%s as label_left" % args['label_key_left']
         query += ", ID(e) as id_e, labels(e) as labels_e, "
@@ -97,16 +97,30 @@ class CreateTlp(object):
                 if record['id_target'] not in nodes_done:
                     t = self.tulip_graph.addNode()
                     property_id[t] = record['id_target']
-                    property_label[t] = str(record['id_target'])
-                    property_color[t] = tlp.Color(49,130,189)
+                    if record['label_target']:
+                        property_label[t] = record['label_target']
+                    else:
+                        property_label[t] = str(record['id_target'])
+                    if args['color_left']:
+                        color = args['color_left'].split(',')
+                        property_color[t] = tlp.Color(int(color[0].replace('rgb(', '')), int(color[1]), int(color[2][:-1]))
+                    else:
+                        property_color[t] = tlp.Color(49, 130, 189)
                     nodes_done[record['id_target']] = t
                 else:
                     t = nodes_done[record['id_target']]
                 if record['id_neigh'] not in nodes_done:
                     n = self.tulip_graph.addNode()
                     property_id[n] = record['id_neigh']
-                    property_label[n] = str(record['id_neigh'])
-                    property_color[n] = tlp.Color(49,130,189)
+                    if record['label_neigh']:
+                        property_label[n] = record['label_neigh']
+                    else:
+                        property_label[n] = str(record['id_neigh'])
+                    if args['color_right']:
+                        color = args['color_right'].split(',')
+                        property_color[n] = tlp.Color(int(color[0].replace('rgb(', '')), int(color[1]), int(color[2][:-1]))
+                    else:
+                        property_color[n] = tlp.Color(49, 130, 189)
                     #  todo add labels(neigh) result
                     nodes_done[record['id_neigh']] = n
                 else:
@@ -118,12 +132,21 @@ class CreateTlp(object):
                         e = self.tulip_graph.addEdge(n, t)
                     property_id[e] = record['id_e']
                     property_label[e] = str(record['labels_e'])
-                    property_color[e] = tlp.Color(158,202,225)
+                    if args['color_edge']:
+                        color = args['color_edge'].split(',')
+                        property_color[e] = tlp.Color(int(color[0].replace('rgb(', '')), int(color[1]), int(color[2][:-1]))
+                    else:
+                        property_color[e] = tlp.Color(158, 202, 225)
 
         query = "MATCH (n) WHERE ID(n) = %s WITH n MATCH (n)-[]->(e:%s)-[]->(neigh:%s)" % (id, e, label)
         query += " RETURN ID(n) as id_target"
+        if args['label_key_left']:
+            query += ", n.%s as label_target" % args['label_key_left']
         query += ", ID(e) as id_e, labels(e) as labels_e"
-        query += ", ID(neigh) as id_neigh, labels(neigh) as label_neigh"
+        query += ", ID(neigh) as id_neigh"
+        if args['label_key_right']:
+            query += ", neigh.%s as label_neigh" % args['label_key_right']
+
 
         execute_query(query, False)
 
