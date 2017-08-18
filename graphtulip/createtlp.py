@@ -49,7 +49,11 @@ class CreateTlp(object):
             if record['id_1'] not in nodes_done:
                 n1 = self.tulip_graph.addNode()
                 property_id[n1] = record['id_1']
-                property_color[n1] = tlp.Color(49,130,189)
+                if args['color_left']:
+                    color= args['color_left'].split(',')
+                    property_color[n1] = tlp.Color(int(color[0].replace('rgb(', '')), int(color[1]), int(color[2][:-1]))
+                else:
+                    property_color[n1] = tlp.Color(49,130,189)
                 if 'label_left' in record.keys() and record['label_left']:
                     property_label[n1] = record['label_left']
                 nodes_done[record['id_1']] = n1
@@ -58,7 +62,11 @@ class CreateTlp(object):
             if record['id_2'] not in nodes_done:
                 n2 = self.tulip_graph.addNode()
                 property_id[n2] = record['id_2']
-                property_color[n2] = tlp.Color(49,130,189)
+                if args['color_right']:
+                    color= args['color_right'].split(',')
+                    property_color[n2] = tlp.Color(int(color[0].replace('rgb(', '')), int(color[1]), int(color[2][:-1]))
+                else:
+                    property_color[n2] = tlp.Color(49,130,189)
                 if 'label_right' in record.keys() and record['label_right']:
                     property_label[n2] = record['label_right']
                 nodes_done[record['id_2']] = n2
@@ -68,7 +76,11 @@ class CreateTlp(object):
                 e = self.tulip_graph.addEdge(n1, n2)
                 property_id[e] = record['id_e']
                 property_label[e] = str(record['labels_e'])
-                property_color[e] = tlp.Color(158,202,225)
+                if args['color_edge']:
+                    color= args['color_edge'].split(',')
+                    property_color[e] = tlp.Color(int(color[0].replace('rgb(', '')), int(color[1]), int(color[2][:-1]))
+                else:
+                    property_color[e] = tlp.Color(158,202,225)
         return self.tulip_graph
 
     def createNeighboursById(self, params):  # todo add level of depth

@@ -69,6 +69,8 @@ class GetLabelsHierarchy(Resource):
                     hierarchy["group" + str(groupId)] = [0]
                     hierarchy["group" + str(groupId)].append({labels[1]: []})
                     hierarchy["group" + str(groupId)].append({labels[0]: []})
+                    hierarchy.pop(labels[0])
+                    hierarchy.pop(labels[1])
                     groupId += 1
             if len(labels) > 2:
                 max = labels[0]

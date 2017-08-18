@@ -17,6 +17,9 @@ parser.add_argument('format')
 parser.add_argument('depth')
 parser.add_argument('label_key_left')
 parser.add_argument('label_key_right')
+parser.add_argument('color_left')
+parser.add_argument('color_right')
+parser.add_argument('color_edge')
 
 
 class GetRandomGraph(Resource):
