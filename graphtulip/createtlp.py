@@ -15,7 +15,6 @@ class CreateTlp(object):
         self.tulip_graph.setName('graph-ryder-generated')
 
     def create(self, params):
-        # todo read and create the graph
         params = tlp.getDefaultPluginParameters('Planar Graph')
         params['nodes'] = 30
         tlp.setSeedOfRandomSequence(random.getrandbits(10))

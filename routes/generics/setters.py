@@ -20,8 +20,9 @@ class SetById(Resource):
           @apiSuccess {String} id of the node
        """
         query = "MATCH (n) WHERE ID(n) = %s" % id
-        for key in request.form.keys():
-            query += " SET n.%s = '%s'" % (key, request.form[key])
+        for key in request.get_json():
+            if not key == 'id':
+                query += " SET n.%s = '%s'" % (key, request.get_json()[key])
         query += " RETURN ID(n) as id"
         result = neo4j.query_neo4j(query)
         try:
