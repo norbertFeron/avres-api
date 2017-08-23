@@ -25,4 +25,5 @@ def add_generics_routes(api):
     api.add_resource(SetById, '/set/<int:id>')
 
     # COUNT
+    api.add_resource(CountLabels, '/countLabels/')
     api.add_resource(CountLabel, '/countLabel/<string:label>')
