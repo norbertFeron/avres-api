@@ -35,11 +35,15 @@ class CreateTlp(object):
         property_color = self.tulip_graph.getColorProperty("viewColor")
         l1, e, l2, args = params
         query = "MATCH (n1:%s)-[]-(e:%s)-[]-(n2:%s) RETURN ID(n1) as id_1" % (l1, e, l2)
-        if args['label_key_left']:
+        if 'label_key_left' in args.keys():
             query += ", n1.%s as label_left" % args['label_key_left']
-        query += ", ID(e) as id_e, labels(e) as labels_e, "
+        query += ", ID(e) as id_e"
+        if 'label_key_edge' in args.keys():
+            query += ", e.%s as labels_e, " % args['label_key_edge']
+        else:
+            query += ", labels(e) as labels_e, "
         query += "ID(n2) as id_2"
-        if args['label_key_right']:
+        if 'label_key_right' in args.keys():
             query += ", n2.%s as label_right" % args['label_key_right']
         result = neo4j.query_neo4j(query)
         nodes_done = {}
@@ -48,8 +52,8 @@ class CreateTlp(object):
             if record['id_1'] not in nodes_done:
                 n1 = self.tulip_graph.addNode()
                 property_id[n1] = record['id_1']
-                if args['color_left']:
-                    color= args['color_left'].split(',')
+                if 'color_left' in args.keys():
+                    color = args['color_left'].split(',')
                     property_color[n1] = tlp.Color(int(color[0].replace('rgb(', '')), int(color[1]), int(color[2][:-1]))
                 else:
                     property_color[n1] = tlp.Color(49,130,189)
@@ -61,7 +65,7 @@ class CreateTlp(object):
             if record['id_2'] not in nodes_done:
                 n2 = self.tulip_graph.addNode()
                 property_id[n2] = record['id_2']
-                if args['color_right']:
+                if 'color_right' in args.keys():
                     color= args['color_right'].split(',')
                     property_color[n2] = tlp.Color(int(color[0].replace('rgb(', '')), int(color[1]), int(color[2][:-1]))
                 else:
@@ -75,7 +79,7 @@ class CreateTlp(object):
                 e = self.tulip_graph.addEdge(n1, n2)
                 property_id[e] = record['id_e']
                 property_label[e] = str(record['labels_e'])
-                if args['color_edge']:
+                if 'color_edge' in args.keys():
                     color= args['color_edge'].split(',')
                     property_color[e] = tlp.Color(int(color[0].replace('rgb(', '')), int(color[1]), int(color[2][:-1]))
                 else:
