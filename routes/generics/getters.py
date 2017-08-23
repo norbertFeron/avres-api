@@ -38,66 +38,35 @@ class GetLabelsHierarchy(Resource):
       @apiSuccess {Array} result Array of labels
    """
     def get(self):
-        hierarchy = {}
+        struct = {}
+        query = "MATCH (a) WITH DISTINCT LABELS(a) AS temp, COUNT(a) AS tempCnt UNWIND temp AS label " \
+                "RETURN label, SUM(tempCnt) AS cnt"
+        result = neo4j.query_neo4j(query)
+        counts = {}
+        for record in result:
+            counts[record['label']] = record['cnt']
         query = "MATCH (n) RETURN DISTINCT labels(n) as labels"
         result = neo4j.query_neo4j(query)
-        labels_list = []
         groupId = 0
         for record in result:
-            labels_list.append(record['labels'])
-        for labels in labels_list:
-            if len(labels) == 1:
-                hierarchy[labels[0]] = [0]
-            if len(labels) > 1:
-                for label in labels:
-                    count = 0
-                    for l in labels_list:
-                        if label in l:
-                            count += 1
-                    hierarchy[label] = [count]
-        for labels in labels_list:
-            if len(labels) == 2:
-                if hierarchy[labels[0]][0] > hierarchy[labels[1]][0]:
-                    hierarchy[labels[0]].append({labels[1]: []})
-                    hierarchy[labels[1]][0] = -1
-                    # hierarchy.pop(labels[1])
-                elif hierarchy[labels[0]][0] < hierarchy[labels[1]][0]:
-                    hierarchy[labels[1]].append({labels[0]: []})
-                    hierarchy[labels[0]][0] = -1
-                    # hierarchy.pop(labels[0])
-                else:
-                    hierarchy["group" + str(groupId)] = [0]
-                    hierarchy["group" + str(groupId)].append({labels[1]: []})
-                    hierarchy["group" + str(groupId)].append({labels[0]: []})
-                    hierarchy.pop(labels[0])
-                    hierarchy.pop(labels[1])
+            if all(counts[x]==counts[record['labels'][0]] for x in record['labels']):
+                if len(record['labels']):
+                    struct['group' + str(groupId)] = {}
+                    for label in record['labels']:
+                        struct['group' + str(groupId)][label] = {}
                     groupId += 1
-            if len(labels) > 2:
-                max = labels[0]
-                for l in labels:
-                    if hierarchy[l][0] > hierarchy[max][0]:
-                        max = l
-                labels.pop(labels.index(max))
-                max2 = labels[0]
-                for l in labels:
-                    if hierarchy[l][0] > hierarchy[max2][0]:
-                        max2 = l
-                labels.pop(labels.index(max2))
-                if not max2 in hierarchy[max][1].keys():
-                    hierarchy[max][1][max2] = []
-                for l in labels:
-                    hierarchy[max][1][max2].append({l : []})
-                    hierarchy[l][0] = -1
-        keys = []
-        for key in hierarchy.keys():
-            if hierarchy[key][0] == -1:
-                keys.append(key)
-            if hierarchy[key][0] > 1 and len(hierarchy[key]) == 1:
-                keys.append(key)
-            hierarchy[key].pop(0)
-        for key in keys:
-            hierarchy.pop(key)
-        return makeResponse(hierarchy, 200)
+            else:
+                prev = {}
+                for i, label in enumerate(sorted(record['labels'], key=lambda l: counts[l], reverse=True)):
+                    if not i:
+                        if label not in struct.keys():
+                            struct[label] = {}
+                        prev[i] = struct[label]
+                    else:
+                        if label not in prev[i-1]:
+                            prev[i-1][label] = {}
+                        prev[i] = prev[i-1][label]
+        return makeResponse(struct, 200)
 
 
 class GetLabelsByLabel(Resource):
