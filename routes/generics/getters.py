@@ -47,16 +47,16 @@ class GetLabelsHierarchy(Resource):
             counts[record['label']] = record['cnt']
         query = "MATCH (n) RETURN DISTINCT labels(n) as labels"
         result = neo4j.query_neo4j(query)
-        groupId = 0
+        ungroupableId = 0
         for record in result:
-            if all(counts[x]==counts[record['labels'][0]] for x in record['labels']):
+            if all(counts[x] == counts[record['labels'][0]] for x in record['labels']):
                 if len(record['labels']) == 1:
                     struct[record['labels'][0]] = {}
                 if len(record['labels']) > 1:
-                    struct['group' + str(groupId)] = {}
+                    struct['ungroupable' + str(ungroupableId)] = {}
                     for label in record['labels']:
-                        struct['group' + str(groupId)][label] = {}
-                    groupId += 1
+                        struct['ungroupable' + str(ungroupableId)][label] = {}
+                    ungroupableId += 1
             else:
                 prev = {}
                 for i, label in enumerate(sorted(record['labels'], key=lambda l: counts[l], reverse=True)):
