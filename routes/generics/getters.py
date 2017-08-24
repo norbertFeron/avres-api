@@ -50,7 +50,9 @@ class GetLabelsHierarchy(Resource):
         groupId = 0
         for record in result:
             if all(counts[x]==counts[record['labels'][0]] for x in record['labels']):
-                if len(record['labels']):
+                if len(record['labels']) == 1:
+                    struct[record['labels'][0]] = {}
+                if len(record['labels']) > 1:
                     struct['group' + str(groupId)] = {}
                     for label in record['labels']:
                         struct['group' + str(groupId)][label] = {}
