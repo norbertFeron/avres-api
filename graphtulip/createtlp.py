@@ -1,4 +1,4 @@
-from connector import neo4j
+from connector import neo4j, mongo
 from tulip import *
 import configparser
 import names
@@ -30,60 +30,87 @@ class CreateTlp(object):
         return self.tulip_graph
 
     def createLabelEdgeLabel(self, params):
+        models = []
+        mongo_models = mongo.db['models'].find()
+        for m in mongo_models:
+            models.append(m)
         property_id = self.tulip_graph.getIntegerProperty("neo4j_id")
         property_label = self.tulip_graph.getStringProperty("name")
         property_color = self.tulip_graph.getColorProperty("viewColor")
         l1, e, l2, args = params
-        query = "MATCH (n1:%s)-[]-(e:%s)-[]-(n2:%s) RETURN ID(n1) as id_1" % (l1, e, l2)
+        query = "MATCH (left:%s)-[]-(edge:%s)-[]-(right:%s) RETURN" % (l1, e, l2)
+        query += " ID(left) as id_left"
+        query += ", ID(edge) as id_edge"
+        query += ", ID(right) as id_right"
+        query += ", labels(left) as labels_left "
+        query += ", labels(edge) as labels_edge "
+        query += ", labels(right) as labels_right "
         if args['label_key_left']:
-            query += ", n1.%s as label_left" % args['label_key_left']
-        query += ", ID(e) as id_e"
+            query += ", left.%s as label_left" % args['label_key_left']
         if args['label_key_edge']:
-            query += ", e.%s as labels_e, " % args['label_key_edge']
-        else:
-            query += ", labels(e) as labels_e, "
-        query += "ID(n2) as id_2"
+            query += ", edge.%s as label_edge " % args['label_key_edge']
         if args['label_key_right']:
-            query += ", n2.%s as label_right" % args['label_key_right']
+            query += ", right.%s as label_right" % args['label_key_right']
         result = neo4j.query_neo4j(query)
         nodes_done = {}
         edges_done = []
+
+        def getLabel(id, labels):
+            for label in eval(labels):
+                for model in models:
+                    if model['label'] == label and 'labeling' in model.keys():
+                        q = "MATCH (n:%s) WHERE ID(n) = %s RETURN n.%s as label" % (label, id, model['labeling'])
+                        r = neo4j.query_neo4j(q)
+                        return r.single()['label']
+            return labels
+
+        def getColor(labels):
+            for label in eval(labels):
+                for model in models:
+                    if model['label'] == label and 'color' in model.keys():
+                        color = model['color'].split(',')
+                        return tlp.Color(int(color[0].replace('rgb(', '')), int(color[1]), int(color[2][:-1]))
+            return tlp.Color(49, 130, 189)
+
+        def addNode(graph, record, key, args):
+            n = graph.addNode()
+            property_id[n] = record['id_%s' % key]
+            if args['color_%s' % key]:
+                color = args['color_%s' % key].split(',')
+                property_color[n] = tlp.Color(int(color[0].replace('rgb(', '')), int(color[1]), int(color[2][:-1]))
+            else:
+                property_color[n] = getColor(str(record['labels_%s' % key]))
+            if 'label_%s' % key in record.keys():
+                property_label[n] = str(record['label_%s' % key])
+            else:
+                property_label[n] = str(getLabel(record['id_%s' % key], str(record['labels_%s' % key])))
+            return n
+
+        def addEdge(graph, record, key, args, n1, n2):
+            e = graph.addEdge(n1, n2)
+            property_id[e] = record['id_%s' % key]
+            if args['color_%s' % key]:
+                color = args['color_%s' % key].split(',')
+                property_color[e] = tlp.Color(int(color[0].replace('rgb(', '')), int(color[1]), int(color[2][:-1]))
+            else:
+                property_color[e] = getColor(str(record['labels_%s' % key]))
+            if 'label_%s' % key in record.keys() and record['label_%s' % key]:
+                property_label[e] = str(record['label_%s' % key])
+            else:
+                property_label[e] = str(getLabel(record['id_%s' % key], str(record['labels_%s' % key])))
+            return e
+
         for record in result:
-            if record['id_1'] not in nodes_done:
-                n1 = self.tulip_graph.addNode()
-                property_id[n1] = record['id_1']
-                if args['color_left']:
-                    color = args['color_left'].split(',')
-                    property_color[n1] = tlp.Color(int(color[0].replace('rgb(', '')), int(color[1]), int(color[2][:-1]))
-                else:
-                    property_color[n1] = tlp.Color(49,130,189)
-                if 'label_left' in record.keys() and record['label_left']:
-                    property_label[n1] = record['label_left']
-                nodes_done[record['id_1']] = n1
+            if record['id_left'] not in nodes_done:
+                left = nodes_done[record['id_left']] = addNode(self.tulip_graph, record, 'left', args)
             else:
-                n1 = nodes_done[record['id_1']]
-            if record['id_2'] not in nodes_done:
-                n2 = self.tulip_graph.addNode()
-                property_id[n2] = record['id_2']
-                if args['color_right']:
-                    color= args['color_right'].split(',')
-                    property_color[n2] = tlp.Color(int(color[0].replace('rgb(', '')), int(color[1]), int(color[2][:-1]))
-                else:
-                    property_color[n2] = tlp.Color(49,130,189)
-                if 'label_right' in record.keys() and record['label_right']:
-                    property_label[n2] = record['label_right']
-                nodes_done[record['id_2']] = n2
+                left = nodes_done[record['id_left']]
+            if record['id_right'] not in nodes_done:
+                right = nodes_done[record['id_right']] = addNode(self.tulip_graph, record, 'right', args)
             else:
-                n2 = nodes_done[record['id_2']]
-            if record['id_e'] not in edges_done:
-                e = self.tulip_graph.addEdge(n1, n2)
-                property_id[e] = record['id_e']
-                property_label[e] = str(record['labels_e'])
-                if args['color_edge']:
-                    color= args['color_edge'].split(',')
-                    property_color[e] = tlp.Color(int(color[0].replace('rgb(', '')), int(color[1]), int(color[2][:-1]))
-                else:
-                    property_color[e] = tlp.Color(158,202,225)
+                right = nodes_done[record['id_right']]
+            if record['id_edge'] not in edges_done:
+                edge = addEdge(self.tulip_graph, record, 'edge', args, left, right)
         return self.tulip_graph
 
     def createNeighboursById(self, params):  # todo add level of depth
