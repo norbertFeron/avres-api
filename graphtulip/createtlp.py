@@ -38,7 +38,7 @@ class CreateTlp(object):
         property_label = self.tulip_graph.getStringProperty("name")
         property_color = self.tulip_graph.getColorProperty("viewColor")
         l1, e, l2, args = params
-        query = "MATCH (left:%s)-[]-(edge:%s)-[]-(right:%s) RETURN" % (l1, e, l2)
+        query = "MATCH (left:%s)-[]->(edge:%s)-[]->(right:%s) RETURN" % (l1, e, l2)
         query += " ID(left) as id_left"
         query += ", ID(edge) as id_edge"
         query += ", ID(right) as id_right"

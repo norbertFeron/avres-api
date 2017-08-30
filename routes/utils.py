@@ -81,7 +81,7 @@ def makeHtmlResponse(result, code=200):
     return response
 
 
-def getJson(graph):
+def getJson(graph, params={'edge_type': 'arrow'}):
     # edges
     edges = []
     for edge in graph.getEdges():
@@ -113,7 +113,7 @@ def getJson(graph):
                 e[prop.getName()] = value
         # sigma id
         e["id"] = edge.id
-        e["type"] = 'arrow'
+        e["type"] = params['edge_type']
         edges.append(e)
 
     # nodes
