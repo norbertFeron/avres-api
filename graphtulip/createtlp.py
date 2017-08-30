@@ -56,13 +56,13 @@ class CreateTlp(object):
         edges_done = []
 
         def getLabel(id, labels):
-            for label in eval(labels):
-                for model in models:
-                    if model['label'] == label and 'labeling' in model.keys():
-                        q = "MATCH (n:%s) WHERE ID(n) = %s RETURN n.%s as label" % (label, id, model['labeling'])
-                        r = neo4j.query_neo4j(q)
-                        return r.single()['label']
-            return labels
+            model = next((model for model in models if model['label'] in labels and 'labeling' in model.keys()), None)
+            if model:
+                q = "MATCH (n:%s) WHERE ID(n) = %s RETURN n.%s as label" % (model['label'], id, model['labeling'])
+                r = neo4j.query_neo4j(q)
+                return r.single()['label']
+            else:
+                return 'No labeling options'
 
         def getColor(labels):
             for label in eval(labels):
