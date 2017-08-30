@@ -23,6 +23,7 @@ def add_generics_routes(api):
 
     # SET
     api.add_resource(SetById, '/set/<int:id>')
+    api.add_resource(CreateNew, '/create/')
 
     # COUNT
     api.add_resource(CountLabels, '/countLabels/')

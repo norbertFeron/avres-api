@@ -16,7 +16,7 @@ class SetById(Resource):
           @apiName SetById
           @apiGroup Setters
           @apiDescription Modify a node
-          @apiParam {String} label Label
+          @apiParam {String} id id
           @apiSuccess {String} id of the node
        """
         query = "MATCH (n) WHERE ID(n) = %s" % id
@@ -29,3 +29,32 @@ class SetById(Resource):
             return makeResponse(result.single()['id'], 200)
         except ResultError:
             return makeResponse("Unable to find id: %s" % id, 400)
+
+
+class CreateNew(Resource):
+    def post(self):
+        """
+          @api {post} /create/ Create new
+          @apiName create
+          @apiGroup Setters
+          @apiDescription create a node
+          @apiSuccess {String} id of the node
+       """
+        print(request.get_json())
+        node = request.get_json()
+        labels = node['labels']
+        del node['labels']
+        query = "CREATE (n:"
+        for l in labels:
+            query += "%s:" % l
+        query = "%s) " % query[:-1]
+        for key in request.get_json():
+            if not key == 'id':
+                query += " SET n.%s = '%s'" % (key, request.get_json()[key])
+        query += " RETURN ID(n) as id"
+        print(query)
+        result = neo4j.query_neo4j(query)
+        try:
+            return makeResponse(result.single()['id'], 200)
+        except ResultError:
+            return makeResponse("Unable to create a new node", 400)
