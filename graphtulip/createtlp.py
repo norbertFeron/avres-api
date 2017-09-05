@@ -117,9 +117,6 @@ class CreateTlp(object):
         return self.tulip_graph
 
     def createNeighboursById(self, params):  # todo add level of depth
-        property_id = self.tulip_graph.getIntegerProperty("neo4j_id")
-        property_label = self.tulip_graph.getStringProperty("name")
-        property_color = self.tulip_graph.getColorProperty("viewColor")
         id, e, label, args = params
         nodes_done = {}
         edges_done = []

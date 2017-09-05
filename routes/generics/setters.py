@@ -40,7 +40,6 @@ class CreateNew(Resource):
           @apiDescription create a node
           @apiSuccess {String} id of the node
        """
-        print(request.get_json())
         node = request.get_json()
         labels = node['labels']
         del node['labels']
@@ -52,9 +51,24 @@ class CreateNew(Resource):
             if not key == 'id':
                 query += " SET n.%s = '%s'" % (key, request.get_json()[key])
         query += " RETURN ID(n) as id"
-        print(query)
         result = neo4j.query_neo4j(query)
         try:
             return makeResponse(result.single()['id'], 200)
         except ResultError:
             return makeResponse("Unable to create a new node", 400)
+
+
+class DeleteById(Resource):
+    def delete(self, id):
+        """
+          @api {delete} /:id
+          @apiName delete
+          @apiGroup Setters
+          @apiDescription delete a node
+       """
+        query = "MATCH (n) WHERE ID(n) = %s DETACH DELETE n" % id
+        result = neo4j.query_neo4j(query)
+        try:
+            return makeResponse('Deleted', 200) # todo: error managing
+        except ResultError:
+            return makeResponse("Unable to delete node", 400)
