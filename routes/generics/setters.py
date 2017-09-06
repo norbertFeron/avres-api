@@ -31,10 +31,10 @@ class SetById(Resource):
             return makeResponse("Unable to find id: %s" % id, 400)
 
 
-class CreateNew(Resource):
+class CreateNode(Resource):
     def post(self):
         """
-          @api {post} /create/ Create new
+          @api {post} /createNode/ Create new node
           @apiName create
           @apiGroup Setters
           @apiDescription create a node
@@ -56,6 +56,27 @@ class CreateNew(Resource):
             return makeResponse(result.single()['id'], 200)
         except ResultError:
             return makeResponse("Unable to create a new node", 400)
+
+
+class CreateEdge(Resource):
+    def post(self):
+        """
+          @api {post} /createEdge/ Create new edge
+          @apiName create
+          @apiGroup Setters
+          @apiDescription create a node
+          @apiSuccess {String} id of the node
+       """
+        edge = request.get_json()
+        query = "MATCH (source) WHERE ID(source) = %s" % edge['source']
+        query += " WITH source MATCH (target) WHERE ID(target) = %s" % edge['target']
+        query += " WITH source, target MATCH (edge) WHERE ID(edge) = %s" % edge['id']
+        query += " WITH source, target, edge CREATE r=(source)-[:HAS]->(edge)-[:HAS]->(target) RETURN r"
+        result = neo4j.query_neo4j(query)
+        try:
+            return makeResponse("ok", 200)
+        except ResultError:
+            return makeResponse("Unable to create a new edge", 400)
 
 
 class DeleteById(Resource):
