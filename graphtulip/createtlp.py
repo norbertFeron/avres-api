@@ -40,7 +40,11 @@ class CreateTlp(object):
     def getLabel(self, id, labels):
         model = next((model for model in self.models if model['label'] in labels and 'labeling' in model.keys()), None)
         if model:
-            q = "MATCH (n:%s) WHERE ID(n) = %s RETURN n.%s as label" % (model['label'], id, model['labeling'])
+            q = "MATCH (n:%s) WHERE ID(n) = %s" % (model['label'], id)
+            if model['labeling']:
+                q += " RETURN n.%s as label" % model['labeling']
+            else:
+                q += " RETURN ID(n) as label"
             r = neo4j.query_neo4j(q)
             return r.single()['label']
         else:
