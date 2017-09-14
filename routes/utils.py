@@ -82,7 +82,7 @@ def makeHtmlResponse(result, code=200):
 
 
 def getJson(graph, params={'edge_type': 'arrow'}):
-    property_id = graph.getIntegerProperty("neo4j_id")
+    property_id = graph.getStringProperty("neo4j_id")
 
     # edges
     edges = []

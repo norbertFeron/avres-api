@@ -13,7 +13,7 @@ class CreateTlp(object):
         super(CreateTlp, self).__init__()
         self.tulip_graph = tlp.newGraph()
         self.tulip_graph.setName('graph-ryder-generated')
-        self.property_id = self.tulip_graph.getIntegerProperty("neo4j_id")
+        self.property_id = self.tulip_graph.getStringProperty("neo4j_id")
         self.property_label = self.tulip_graph.getStringProperty("name")
         self.property_labels = self.tulip_graph.getStringProperty("labels")
         self.property_color = self.tulip_graph.getColorProperty("viewColor")
@@ -39,16 +39,15 @@ class CreateTlp(object):
 
     def getLabel(self, id, labels):
         model = next((model for model in self.models if model['label'] in labels and 'labeling' in model.keys()), None)
-        if model:
-            q = "MATCH (n:%s) WHERE ID(n) = %s" % (model['label'], id)
-            if model['labeling']:
-                q += " RETURN n.%s as label" % model['labeling']
-            else:
-                q += " RETURN ID(n) as label"
+        if model and model['labeling']:
+            # q = "MATCH (n:%s) WHERE ID(n) = %s" % (model['label'], id)
+            q = "MATCH (n) WHERE ID(n) = %s" % id
+            q += " RETURN n.%s as label" % model['labeling']
             r = neo4j.query_neo4j(q)
-            return r.single()['label']
-        else:
-            return 'No labeling options'
+            label = r.single()['label']
+            if label:
+                return label
+        return "id: %s" % id
 
     def getColor(self, labels):
         for label in eval(labels):
@@ -60,7 +59,7 @@ class CreateTlp(object):
 
     def addNode(self, record, key, args):
         n = self.tulip_graph.addNode()
-        self.property_id[n] = record['id_%s' % key]
+        self.property_id[n] = str(record['id_%s' % key])
         self.property_labels[n] = str(record['labels_%s' % key])
         if 'color_%s' % key in args.keys() and args['color_%s' % key]:
             color = args['color_%s' % key].split(',')
@@ -73,9 +72,12 @@ class CreateTlp(object):
             self.property_label[n] = str(self.getLabel(record['id_%s' % key], str(record['labels_%s' % key])))
         return n
 
-    def addEdge(self, record, key, args, n1, n2):
+    def addEdge(self, record, key, args, n1, n2, duplicate=False):
         e = self.tulip_graph.addEdge(n1, n2)
-        self.property_id[e] = record['id_%s' % key]
+        if duplicate:
+            self.property_id[e] = 'd_%s' % str(record['id_%s' % key])
+        else:
+            self.property_id[e] = str(record['id_%s' % key])
         self.property_labels[e] = str(record['labels_%s' % key])
         if 'color_%s' % key in args.keys() and args['color_%s' % key]:
             color = args['color_%s' % key].split(',')
@@ -90,7 +92,7 @@ class CreateTlp(object):
 
     def createLabelEdgeLabel(self, params):
         l1, e, l2, args = params
-        query = "MATCH (left:%s)-[]->(edge:%s)-[]->(right:%s) RETURN" % (l1, e, l2)
+        query = "MATCH (left:%s)-[]-(edge:%s)-[]->(right:%s) RETURN" % (l1, e, l2)
         query += " ID(left) as id_left"
         query += ", ID(edge) as id_edge"
         query += ", ID(right) as id_right"
@@ -118,6 +120,9 @@ class CreateTlp(object):
                 right = nodes_done[record['id_right']]
             if record['id_edge'] not in edges_done:
                 edge = self.addEdge(record, 'edge', args, left, right)
+                edges_done.append(record['id_edge'])
+            else:
+                edge = self.addEdge(record, 'edge', args, left, right, True)
         return self.tulip_graph
 
     def createNeighboursById(self, params):  # todo add level of depth
