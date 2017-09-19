@@ -28,12 +28,15 @@ class CreateTlp(object):
         tlp.setSeedOfRandomSequence(random.getrandbits(10))
         tlp.initRandomSequence()
         self.tulip_graph = tlp.importGraph('Planar Graph', params)
+        property_id = self.tulip_graph.getStringProperty("neo4j_id")
         property_label = self.tulip_graph.getStringProperty("name")
         property_color = self.tulip_graph.getColorProperty("viewColor")
         for node in self.tulip_graph.nodes():
+            property_id[node] = str(node.id)
             property_label[node] = names.get_full_name()
             property_color[node] = tlp.Color(49,130,189)
         for edge in self.tulip_graph.edges():
+            property_id[edge] = str(edge.id)
             property_color[edge] = tlp.Color(158,202,225)
         return self.tulip_graph
 
@@ -75,7 +78,7 @@ class CreateTlp(object):
     def addEdge(self, record, key, args, n1, n2, duplicate=False):
         e = self.tulip_graph.addEdge(n1, n2)
         if duplicate:
-            self.property_id[e] = 'd_%s' % str(record['id_%s' % key])
+            self.property_id[e] = 'd%s_%s' % (duplicate, str(record['id_%s' % key]))
         else:
             self.property_id[e] = str(record['id_%s' % key])
         self.property_labels[e] = str(record['labels_%s' % key])
@@ -89,6 +92,77 @@ class CreateTlp(object):
         else:
             self.property_label[e] = str(self.getLabel(record['id_%s' % key], str(record['labels_%s' % key])))
         return e
+
+    def createGraphQuery(self, args):
+        query = "MATCH "
+        where = ""
+        n=0
+        edges=[]
+        edge_waiting = False
+        waiting_edge = False
+        for element in args['query'].split('/'):
+            filters = element.split('->')
+            if filters[0]:
+                if 'Link' in filters[0]:
+                    if edge_waiting:
+                        query += "--(e%s:%s)" % (len(edges), filters[0])
+                        edges.append({'source': n - 1, 'target': n})
+                    else:
+                        waiting_edge = "--(e%s:%s)" % (len(edges), filters[0])
+                    if '*' not in filters[1] and '*' not in filters[2]:
+                        where = " e%s.%s = '%s' AND" % (len(edges), filters[1], filters[2])
+                    edge_waiting = False
+                else:
+                    if edge_waiting:
+                        query += " WITH * MATCH "
+                    elif n > 0:
+                        query += "--"
+                    query += "(n%s:%s)" % (n, filters[0])
+                    if '*' not in filters[1] and '*' not in filters[2]:
+                        where += " n%s.%s = '%s' AND" % (n, filters[1], filters[2])
+                    n += 1
+                    edge_waiting = True
+                    if waiting_edge:
+                        query += " WITH * MATCH (n%s)%s--(n%s)" % (n-2, waiting_edge, n-1) # Can be MATCH OPTIONAL
+                        edges.append({'source': n-2, 'target': n-1})
+                        waiting_edge = False
+        if n == 1 and not edge_waiting:
+            query += "--(n1)"
+            where += " NOT 'Link' in labels(n1) AND"
+            n += 1
+        if len(where) > 0:
+            where = where[:-4]
+            query += " WHERE " + where
+        query += ' RETURN '
+        for i in range(0, n):
+            query += "ID(n%s) as id_n%s, labels(n%s) as labels_n%s, " % (i, i, i, i)
+        for i, e in enumerate(edges):
+            query += "ID(e%s) as id_e%s, labels(e%s) as labels_e%s, " % (i, i, i, i)
+        query = query[:-2]
+        result = neo4j.query_neo4j(query)
+
+        nodes_done = {}
+        edges_done = {}
+
+        for record in result:
+            # Nodes
+            for i in range(0, n):
+                if record['id_n%s' % i] and record['id_n%s' % i] not in nodes_done:
+                    nodes_done[record['id_n%s' % i]] = self.addNode(record, 'n%s' % i, args)
+
+            #  Edges
+            for i, e in enumerate(edges):
+                source = nodes_done[record['id_n%s' % e['source']]]
+                target = nodes_done[record['id_n%s' % e['target']]]
+                if record['id_e%s' % i] and record['id_e%s' % i] not in edges_done:
+                    self.addEdge(record, 'e%s' % i, args, source, target)
+                    edges_done[record['id_e%s' % i]] = {'count': 1, 'sources': [source.id], 'targets': [target.id]}
+                elif record['id_e%s' % i] and not (source.id in edges_done[record['id_e%s' % i]]['sources'] and target.id in edges_done[record['id_e%s' % i]]['targets']):
+                    self.addEdge(record, 'e%s' % i, args, source, target, edges_done[record['id_e%s' % i]])
+                    edges_done[record['id_e%s' % i]]['count'] += 1
+                    edges_done[record['id_e%s' % i]]['sources'].append(source.id)
+                    edges_done[record['id_e%s' % i]]['targets'].append(target.id)
+        return self.tulip_graph
 
     def createLabelEdgeLabel(self, params):
         l1, e, l2, args = params
@@ -122,7 +196,7 @@ class CreateTlp(object):
                 edge = self.addEdge(record, 'edge', args, left, right)
                 edges_done.append(record['id_edge'])
             else:
-                edge = self.addEdge(record, 'edge', args, left, right, True)
+                edge = self.addEdge(record, 'edge', args, left, right, 1)
         return self.tulip_graph
 
     def createNeighboursById(self, params):  # todo add level of depth

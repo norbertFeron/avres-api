@@ -49,7 +49,7 @@ class GetLabelsHierarchy(Resource):
         result = neo4j.query_neo4j(query)
         ungroupableId = 0
         for record in result:
-            if all(counts[x] == counts[record['labels'][0]] for x in record['labels']):
+            if all(counts[x] == counts[record['labels'][0]] for x in record['labels']): # todo also if 2 over 3 have the same count
                 if len(record['labels']) == 1:
                     struct[record['labels'][0]] = {}
                 if len(record['labels']) > 1:

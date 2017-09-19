@@ -21,16 +21,15 @@ parser.add_argument('label_key_edge')
 parser.add_argument('color_left')
 parser.add_argument('color_right')
 parser.add_argument('color_edge')
+parser.add_argument('query')
 
 
 class GetRandomGraph(Resource):
     """
-       @api {get} /getGraph/:field/:value get graph with ?
-       @apiName getGraph
+       @api {get} /getGraph/random/ get graph with ?
+       @apiName getGraph Random
        @apiGroup Graphs
-       @apiDescription Get graph with field/value
-       @apiParam {String} field  ?
-       @apiParam {value} value ?
+       @apiDescription Get a random graph
        @apiParam {layout} tulip layout algorithm to apply
        @apiSuccess {Graph} Graph in json format.
     """
@@ -42,6 +41,28 @@ class GetRandomGraph(Resource):
         if args['layout']:
             applyLayout(graph, args['layout'])
         return makeResponse(getJson(graph), 200)
+
+
+class GetQueryGraph(Resource):
+    """
+       @api {get} /getGraph/:query get graph with ?
+       @apiName getGraph
+       @apiGroup Graphs
+       @apiDescription Get graph with a query
+       @apiParam {value} query
+       @apiParam {layout} tulip layout algorithm to apply
+       @apiSuccess {Graph} Graph in json format.
+    """
+    def get(self):
+        creator = CreateTlp()
+        params = parser.parse_args()
+        graph = creator.createGraphQuery(params)
+        args = parser.parse_args()
+        applyLayout(graph, args['layout'])
+        if args['format'] == 'html':
+            return makeHtmlResponse(getHtml(graph), 200)
+        else:
+            return makeResponse(getJson(graph), 200)
 
 
 class GetGraphLabelEdgeLabel(Resource):
