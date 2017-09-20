@@ -139,6 +139,7 @@ class CreateTlp(object):
         for i, e in enumerate(edges):
             query += "ID(e%s) as id_e%s, labels(e%s) as labels_e%s, " % (i, i, i, i)
         query = query[:-2]
+        print(query)
         result = neo4j.query_neo4j(query)
 
         nodes_done = {}
@@ -202,24 +203,33 @@ class CreateTlp(object):
     def createNeighboursById(self, params):  # todo add level of depth
         id, e, label, args = params
         nodes_done = {}
-        edges_done = []
+        edges_done = {}
 
         def execute_query(query, target_to_neigh):
             result = neo4j.query_neo4j(query)
             for record in result:
-                if record['id_target'] not in nodes_done:
+                if record['id_neigh'] and record['id_target'] not in nodes_done:
                     t = nodes_done[record['id_target']] = self.addNode(record, 'target', args)
                 else:
                     t = nodes_done[record['id_target']]
-                if record['id_neigh'] not in nodes_done:
+                if record['id_neigh'] and record['id_neigh'] not in nodes_done:
                     n = nodes_done[record['id_neigh']] = self.addNode(record, 'neigh', args)
                 else:
                     n = nodes_done[record['id_neigh']]
-                if record['id_edge'] not in edges_done:
+                if record['id_edge'] and record['id_edge'] not in edges_done:
                     if target_to_neigh:
                         self.addEdge(record, 'edge', args, t, n)
+                        edges_done[record['id_edge']] = 1
                     else:
                         self.addEdge(record, 'edge', args, n, t)
+                        edges_done[record['id_edge']] = 1
+                else:
+                    if target_to_neigh:
+                        self.addEdge(record, 'edge', args, t, n, edges_done[record['id_edge']])
+                        edges_done[record['id_edge']] += 1
+                    else:
+                        self.addEdge(record, 'edge', args, n, t, edges_done[record['id_edge']])
+                        edges_done[record['id_edge']] += 1
 
         query = "MATCH (n) WHERE ID(n) = %s WITH n MATCH (n)-[]->(e:%s)-[]->(neigh:%s)" % (id, e, label)
         query += " RETURN ID(n) as id_target"

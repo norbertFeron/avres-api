@@ -58,6 +58,8 @@ class GetQueryGraph(Resource):
         params = parser.parse_args()
         graph = creator.createGraphQuery(params)
         args = parser.parse_args()
+        if len(graph.edges()) == 0:
+            args['layout'] = 'Circular (OGDF)'
         applyLayout(graph, args['layout'])
         if args['format'] == 'html':
             return makeHtmlResponse(getHtml(graph), 200)
