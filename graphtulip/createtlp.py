@@ -110,7 +110,7 @@ class CreateTlp(object):
                     else:
                         waiting_edge = "--(e%s:%s)" % (len(edges), filters[0])
                     if '*' not in filters[1] and '*' not in filters[2]:
-                        where = " e%s.%s = '%s' AND" % (len(edges), filters[1], filters[2])
+                        where = " e%s.%s = '%s' AND" % (len(edges)-1, filters[1], filters[2])
                     edge_waiting = False
                 else:
                     if edge_waiting:
@@ -159,7 +159,7 @@ class CreateTlp(object):
                     self.addEdge(record, 'e%s' % i, args, source, target)
                     edges_done[record['id_e%s' % i]] = {'count': 1, 'sources': [source.id], 'targets': [target.id]}
                 elif record['id_e%s' % i] and not (source.id in edges_done[record['id_e%s' % i]]['sources'] and target.id in edges_done[record['id_e%s' % i]]['targets']):
-                    self.addEdge(record, 'e%s' % i, args, source, target, edges_done[record['id_e%s' % i]])
+                    self.addEdge(record, 'e%s' % i, args, source, target, edges_done[record['id_e%s' % i]]['count'])
                     edges_done[record['id_e%s' % i]]['count'] += 1
                     edges_done[record['id_e%s' % i]]['sources'].append(source.id)
                     edges_done[record['id_e%s' % i]]['targets'].append(target.id)
