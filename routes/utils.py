@@ -121,6 +121,7 @@ def getJson(graph, params={'edge_type': 'arrow'}):
 
     # nodes
     nodes = []
+    graph.getLayoutProperty("viewLayout").center()
     for node in graph.getNodes():
         n = {}
         for prop in graph.getObjectProperties():
@@ -144,7 +145,7 @@ def getJson(graph, params={'edge_type': 'arrow'}):
             elif prop.getName() == "viewLayout":
                 coord = prop.getNodeStringValue(node)[1:-1].split(',')
                 n["x"] = float(coord[0])
-                n["y"] = float(coord[1]) * (-1)
+                n["y"] = float(coord[1])
             elif prop.getName() == "neo4j_id":
                 n["id"] = prop.getNodeValue(node)
             elif prop.getName() == "viewSelection":

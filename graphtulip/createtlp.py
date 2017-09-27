@@ -17,6 +17,7 @@ class CreateTlp(object):
         self.property_label = self.tulip_graph.getStringProperty("name")
         self.property_labels = self.tulip_graph.getStringProperty("labels")
         self.property_color = self.tulip_graph.getColorProperty("viewColor")
+        self.property_size = self.tulip_graph.getSizeProperty("viewSize")
         self.models = []
         mongo_models = mongo.db['models'].find()
         for m in mongo_models:
@@ -28,16 +29,13 @@ class CreateTlp(object):
         tlp.setSeedOfRandomSequence(random.getrandbits(10))
         tlp.initRandomSequence()
         self.tulip_graph = tlp.importGraph('Planar Graph', params)
-        property_id = self.tulip_graph.getStringProperty("neo4j_id")
-        property_label = self.tulip_graph.getStringProperty("name")
-        property_color = self.tulip_graph.getColorProperty("viewColor")
         for node in self.tulip_graph.nodes():
-            property_id[node] = str(node.id)
-            property_label[node] = names.get_full_name()
-            property_color[node] = tlp.Color(49,130,189)
+            self.property_id[node] = str(node.id)
+            self.property_label[node] = names.get_full_name()
+            self.property_color[node] = tlp.Color(49,130,189)
         for edge in self.tulip_graph.edges():
-            property_id[edge] = str(edge.id)
-            property_color[edge] = tlp.Color(158,202,225)
+            self.property_id[edge] = str(edge.id)
+            self.property_color[edge] = tlp.Color(158,202,225)
         return self.tulip_graph
 
     def getLabel(self, id, labels):
@@ -64,6 +62,7 @@ class CreateTlp(object):
         n = self.tulip_graph.addNode()
         self.property_id[n] = str(record['id_%s' % key])
         self.property_labels[n] = str(record['labels_%s' % key])
+        self.property_size[n] = tlp.Size(4, 4, 4)
         if 'color_%s' % key in args.keys() and args['color_%s' % key]:
             color = args['color_%s' % key].split(',')
             self.property_color[n] = tlp.Color(int(color[0].replace('rgb(', '')), int(color[1]), int(color[2][:-1]))
@@ -108,7 +107,7 @@ class CreateTlp(object):
                         query += "--(e%s:%s)" % (len(edges), filters[0])
                         edges.append({'source': n - 1, 'target': n})
                     else:
-                        waiting_edge = "--(e%s:%s)" % (len(edges), filters[0])
+                        waiting_edge = "-->(e%s:%s)" % (len(edges), filters[0])
                     if '*' not in filters[1] and '*' not in filters[2]:
                         where = " e%s.%s = '%s' AND" % (len(edges)-1, filters[1], filters[2])
                     edge_waiting = False
@@ -116,18 +115,18 @@ class CreateTlp(object):
                     if edge_waiting:
                         query += " WITH * MATCH "
                     elif n > 0:
-                        query += "--"
+                        query += "-->"
                     query += "(n%s:%s)" % (n, filters[0])
                     if '*' not in filters[1] and '*' not in filters[2]:
                         where += " n%s.%s = '%s' AND" % (n, filters[1], filters[2])
                     n += 1
                     edge_waiting = True
                     if waiting_edge:
-                        query += " WITH * MATCH (n%s)%s--(n%s)" % (n-2, waiting_edge, n-1) # Can be MATCH OPTIONAL
+                        query += " WITH * MATCH (n%s)%s-->(n%s)" % (n-2, waiting_edge, n-1) # Can be MATCH OPTIONAL
                         edges.append({'source': n-2, 'target': n-1})
                         waiting_edge = False
         if n == 1 and not edge_waiting:
-            query += "--(n1)"
+            query += "-->(n1)"
             where += " NOT 'Link' in labels(n1) AND"
             n += 1
         if len(where) > 0:
@@ -167,7 +166,7 @@ class CreateTlp(object):
 
     def createLabelEdgeLabel(self, params):
         l1, e, l2, args = params
-        query = "MATCH (left:%s)-[]-(edge:%s)-[]->(right:%s) RETURN" % (l1, e, l2)
+        query = "MATCH (left:%s)-[]->(edge:%s)-[]->(right:%s) RETURN" % (l1, e, l2)
         query += " ID(left) as id_left"
         query += ", ID(edge) as id_edge"
         query += ", ID(right) as id_right"
@@ -219,17 +218,22 @@ class CreateTlp(object):
                 if record['id_edge'] and record['id_edge'] not in edges_done:
                     if target_to_neigh:
                         self.addEdge(record, 'edge', args, t, n)
-                        edges_done[record['id_edge']] = 1
+                        edges_done[record['id_edge']] = {'source': [t.id], 'target': [n.id], 'count': 1}
                     else:
                         self.addEdge(record, 'edge', args, n, t)
-                        edges_done[record['id_edge']] = 1
+                        edges_done[record['id_edge']] = {'source': [n.id], 'target': [t.id], 'count': 1}
                 else:
-                    if target_to_neigh:
-                        self.addEdge(record, 'edge', args, t, n, edges_done[record['id_edge']])
-                        edges_done[record['id_edge']] += 1
-                    else:
-                        self.addEdge(record, 'edge', args, n, t, edges_done[record['id_edge']])
-                        edges_done[record['id_edge']] += 1
+                    if target_to_neigh and not (t.id in edges_done[record['id_edge']]['source'] and n.id in edges_done[record['id_edge']]['target']):
+                        edges_done[record['id_edge']]['source'].append(t.id)
+                        edges_done[record['id_edge']]['target'].append(n.id)
+                        edges_done[record['id_edge']]['count'] += 1
+                        self.addEdge(record, 'edge', args, t, n, edges_done[record['id_edge']]['count'])
+                    elif not (n.id in edges_done[record['id_edge']]['source'] and t.id in edges_done[record['id_edge']]['target']):
+                        edges_done[record['id_edge']]['source'].append(n.id)
+                        edges_done[record['id_edge']]['target'].append(t.id)
+                        edges_done[record['id_edge']]['count'] += 1
+                        self.addEdge(record, 'edge', args, n, t, edges_done[record['id_edge']]['count'])
+
 
         query = "MATCH (n) WHERE ID(n) = %s WITH n MATCH (n)-[]->(e:%s)-[]->(neigh:%s)" % (id, e, label)
         query += " RETURN ID(n) as id_target"
