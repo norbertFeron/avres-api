@@ -29,13 +29,20 @@ class CreateTlp(object):
         tlp.setSeedOfRandomSequence(random.getrandbits(10))
         tlp.initRandomSequence()
         self.tulip_graph = tlp.importGraph('Planar Graph', params)
+        property_id = self.tulip_graph.getStringProperty("neo4j_id")
+        property_label = self.tulip_graph.getStringProperty("name")
+        property_labels = self.tulip_graph.getStringProperty("labels")
+        property_color = self.tulip_graph.getColorProperty("viewColor")
+        property_size = self.tulip_graph.getSizeProperty("viewSize")
         for node in self.tulip_graph.nodes():
-            self.property_id[node] = str(node.id)
-            self.property_label[node] = names.get_full_name()
-            self.property_color[node] = tlp.Color(49,130,189)
+            property_id[node] = str(node.id)
+            property_label[node] = names.get_full_name()
+            property_color[node] = tlp.Color(49,130,189)
+            property_size[node] = tlp.Size(4, 4, 4)
         for edge in self.tulip_graph.edges():
-            self.property_id[edge] = str(edge.id)
-            self.property_color[edge] = tlp.Color(158,202,225)
+            property_id[edge] = str(edge.id)
+            property_color[edge] = tlp.Color(158,202,225)
+        self.tulip_graph.applyLayoutAlgorithm("FM^3 (OGDF)")
         return self.tulip_graph
 
     def getLabel(self, id, labels):
