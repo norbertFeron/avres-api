@@ -22,6 +22,7 @@ parser.add_argument('color_left')
 parser.add_argument('color_right')
 parser.add_argument('color_edge')
 parser.add_argument('query')
+parser.add_argument('directed')
 
 
 class GetRandomGraph(Resource):
