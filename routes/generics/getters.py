@@ -134,7 +134,7 @@ class GetAttributesByLabel(Resource):
        @apiSuccess {Array} result Array of attributes.
     """
     def get(self, label):
-        query = "MATCH (n:%s)-[:HAS]->(:Property)-[:IS]->(k) RETURN COLLECT(DISTINCT labels(k)) as attr" % label
+        query = "MATCH (n:%s)-[:HAS]->(:Link:Property)-[:IS]->(k:Node:Attribute) RETURN COLLECT(DISTINCT labels(k)) as attr" % label
         result = neo4j.query_neo4j(query)
         return makeResponse(result.single()['attr'], 200)
 
@@ -301,6 +301,8 @@ class GetById(Resource):
             for a in attributes:
                 if 'Attribute' in a:
                     a.remove('Attribute')
+                if 'Node' in a:
+                    a.remove('Node')
                 attrs.append(a[0])  # Unpack
         if attrs:
             for attribute in attrs:
