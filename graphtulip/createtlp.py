@@ -1,4 +1,5 @@
 from connector import neo4j, mongo
+from neo4j.v1 import ResultError
 from tulip import *
 import configparser
 import names
@@ -49,13 +50,13 @@ class CreateTlp(object):
         model = next((model for model in self.models if model['label'] in labels and 'labeling' in model.keys()), None)
         if model and model['labeling']:
             # q = "MATCH (n:%s) WHERE ID(n) = %s" % (model['label'], id)
-            q = "MATCH (n) WHERE ID(n) = %s" % id
-            q += " RETURN n.%s as label" % model['labeling']
+            q = "MATCH (n)--(:Link:Prop)--(p:Property:%s) WHERE ID(n) = %s" % (model['labeling'], id)
+            q += " RETURN p.value as label"
             r = neo4j.query_neo4j(q)
-            label = r.single()['label']
-            if label:
-                return label
-        return "id: %s" % id
+            try:
+                return r.single()['label']
+            except ResultError:
+                return "id: %s" % id
 
     def getColor(self, labels):
         for label in eval(labels):
@@ -124,7 +125,7 @@ class CreateTlp(object):
                     edge_waiting = False
                 else:
                     if edge_waiting:
-                        query += " WITH * MATCH "
+                        query += " MATCH "
                     elif n > 0:
                         query += "--%s" % directed
                     query += "(n%s:%s)" % (n, filters[0])

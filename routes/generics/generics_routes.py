@@ -16,7 +16,6 @@ def add_generics_routes(api):
     api.add_resource(GetPropertyValueByLabel, '/getPropertyValue/<string:label>/<string:key>')
 
     api.add_resource(GetAttributesByLabel, '/getAttributes/<string:label>')
-    api.add_resource(GetAttributeValueByLabel, '/getAttributeValue/<string:label>/<string:key>')
 
     # GET Element(s)
     api.add_resource(GetByLabel, '/get/<string:label>')

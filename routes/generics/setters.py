@@ -47,9 +47,12 @@ class CreateNode(Resource):
         for l in labels:
             query += "%s:" % l
         query = "%s) " % query[:-1]
+        index = 0
         for key in request.get_json():
             if not key == 'id':
-                query += " SET n.%s = '%s'" % (key, request.get_json()[key])
+                query += ' MERGE (%s:Property:%s {value: "%s"})' % ('a' + str(index), key, request.get_json()[key])
+                query += ' WITH * MERGE (n)-[:HAS]->(:Link:Prop)-[:IS]->(%s)' % ('a' + str(index))
+                index = index + 1
         query += " RETURN ID(n) as id"
         result = neo4j.query_neo4j(query)
         try:
@@ -87,8 +90,11 @@ class DeleteById(Resource):
           @apiGroup Setters
           @apiDescription delete a node
        """
-        query = "MATCH (n) WHERE ID(n) = %s DETACH DELETE n" % id
+        query = "MATCH (n)--(pl:Prop)--(p:Property) WHERE ID(n) = %s DETACH DELETE n, pl RETURN ID(p) as prop" % id
         result = neo4j.query_neo4j(query)
+        for record in result:
+            query = "MATCH (p:Property) WHERE id(p) = %s AND NOT (p)--() DETACH DELETE p" % record['prop']
+            neo4j.query_neo4j(query)
         try:
             return makeResponse('Deleted', 200) # todo: error managing
         except ResultError:

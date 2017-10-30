@@ -30,7 +30,7 @@ class GetLabels(Resource):
 
 class GetLabelsHierarchy(Resource):
     """
-      @api {get} /getLabelshierarchy/ Get all labels
+      @api {get} /getLabelsHierarchy/ Get all labels
       @apiName GetLabels
       @apiGroup Getters
       @apiDescription Return the list of possible labels.
@@ -111,7 +111,7 @@ class GetLabelsById(Resource):
 
 class GetPropertiesByLabel(Resource):
     """
-       @api {get} /GetPropertiesbel Get properties by label 
+       @api {get} /getProperties Get properties by label
        @apiName GetPropertiesByLabel
        @apiGroup Getters
        @apiDescription Get possible property for a label  
@@ -119,14 +119,17 @@ class GetPropertiesByLabel(Resource):
        @apiSuccess {Array} result Array of property.
     """
     def get(self, label):
-        query = "MATCH (n:%s) WITH n UNWIND keys(n) as k RETURN COLLECT(DISTINCT k) as keys" % label
+        query = "MATCH (n:%s)--(:Link:Prop)--(p:Property) WITH p UNWIND labels(p) as k RETURN COLLECT(DISTINCT k) as keys" % label
         result = neo4j.query_neo4j(query)
-        return makeResponse(result.single()['keys'], 200)
+        keys = result.single()['keys']
+        if 'Property' in keys:
+            keys.remove('Property')
+        return makeResponse(keys, 200)
 
 
 class GetAttributesByLabel(Resource):
     """
-       @api {get} /GetAttributes/:label Get properties by label 
+       @api {get} /getAttributes/:label Get properties by label
        @apiName GetAttributesByLabel
        @apiGroup Getters
        @apiDescription Get possible attributes for a label  
@@ -134,14 +137,20 @@ class GetAttributesByLabel(Resource):
        @apiSuccess {Array} result Array of attributes.
     """
     def get(self, label):
-        query = "MATCH (n:%s)-[:HAS]->(:Link:Property)-[:IS]->(k:Node:Attribute) RETURN COLLECT(DISTINCT labels(k)) as attr" % label
+        # query = "MATCH (n:%s)--(:Link:Attr)--(a:Attribute) WITH a UNWIND labels(a) as k RETURN COLLECT(DISTINCT k) as attr" % label # todo reset when Geo and Time is manage
+        query = "MATCH (n:%s)--(:Link:Attr)--(a) WITH a UNWIND labels(a) as k RETURN COLLECT(DISTINCT k) as attr" % label
         result = neo4j.query_neo4j(query)
-        return makeResponse(result.single()['attr'], 200)
+        attr = result.single()['attr']
+        if 'Node' in attr:
+            attr.remove('Node')
+        if 'Attribute' in attr:
+            attr.remove('Attribute')
+        return makeResponse(attr, 200)
 
 
 class GetPropertyValue(Resource):
     """
-       @api {get} /GetPropertyValue/:label/:property Get value by property/label 
+       @api {get} /getPropertyValue/:property Get value by property
        @apiName GetPropertyValueByLabel
        @apiGroup Getters
        @apiDescription Get possible property value for a label  
@@ -150,14 +159,14 @@ class GetPropertyValue(Resource):
        @apiSuccess {Array} result Array of value.
     """
     def get(self, key):
-        query = "MATCH (n) RETURN COLLECT(DISTINCT n.%s) as values" % key
+        query = "MATCH (n)--(:Link:Prop)--(p:Property:%s) WITH p UNWIND p.value as v RETURN COLLECT(DISTINCT v) as values" % key
         result = neo4j.query_neo4j(query)
         return makeResponse(result.single()['values'], 200)
 
 
 class GetPropertyValueByLabel(Resource):
     """
-       @api {get} /GetPropertyValue/:label/:property Get value by property/label 
+       @api {get} /getPropertyValue/:label/:property Get value by property/label
        @apiName GetPropertyValueByLabel
        @apiGroup Getters
        @apiDescription Get possible property value for a label  
@@ -166,24 +175,7 @@ class GetPropertyValueByLabel(Resource):
        @apiSuccess {Array} result Array of value.
     """
     def get(self, label, key):
-        query = "MATCH (n:%s) RETURN COLLECT(DISTINCT n.%s) as values" % (label, key)
-        result = neo4j.query_neo4j(query)
-        return makeResponse(result.single()['values'], 200)
-
-
-class GetAttributeValueByLabel(Resource):
-    """
-       @api {get} /GetPropertyValue/:label/:property Get value by property/label
-       @apiName GetPropertyValueByLabel
-       @apiGroup Getters
-       @apiDescription Get possible property value for a label
-       @apiParam {String} label Label
-       @apiParam {String} property Property
-       @apiSuccess {Array} result Array of value.
-    """
-
-    def get(self, label, key):
-        query = "MATCH (n:%s)--(:Link:Property)--(a:Node:Attribute:%s) RETURN COLLECT(DISTINCT a.value) as values" % (label, key)
+        query = "MATCH (n:%s)--(:Link:Prop)--(p:Property:%s) WITH p UNWIND p.value as v RETURN COLLECT(DISTINCT v) as values" % (label, key)
         result = neo4j.query_neo4j(query)
         return makeResponse(result.single()['values'], 200)
 
@@ -289,29 +281,28 @@ class GetById(Resource):
     def get(self, id):  # Multiple request
         args = parser.parse_args()
         keys = args['keys']
-        query = "MATCH (n) WHERE ID(n) = %s RETURN ID(n) as id" % id
-        if keys and '*' in keys:
-            q = "MATCH (n) WHERE ID(n) = %s WITH n UNWIND keys(n) as k RETURN COLLECT(DISTINCT k) as keys" % id
-            result = neo4j.query_neo4j(q)
-            keys = result.single()['keys']
+        result = []
         if keys:
-            for key in keys:
-                query += ", n.%s as %s" % (key, key)
-        query += addargs()
-        result = neo4j.query_neo4j(query)
-        try:
-            res = result.single()
-        except ResultError:
-            return makeResponse("Impossible to find this id", 400)
-        element = {'id': res['id']}
-        if keys:
-            for key in keys:
-                element[key] = res[key]
+            query = "MATCH (n)--(:Link:Prop)--(p:Property) WHERE ID(n) = %s" % id
+            if '*' not in keys:
+                query += " AND ('%s' IN labels(p)" % keys.pop(0)
+                for key in keys:
+                    query += " OR '%s' IN labels(p)" % (key, key)
+                query += ')'
+            query += " RETURN labels(p) as labels, p.value as value"
+            result = neo4j.query_neo4j(query)
+            if not result:
+                return makeResponse("Impossible to find this id", 400)
+        element = {'id': id}
+        for record in result:
+            label = record['labels']
+            label.remove('Property')
+            element[label[0]] = record['value']
         args = parser.parse_args()
         attrs = args['attrs']
         if attrs and '*' in attrs:
             attrs = []
-            q = "MATCH (n)-[:HAS]->(:Property)-[:IS]->(k)"
+            q = "MATCH (n)-[:HAS]->(:Link:Attr)-[:IS]->(k)"
             q += " WHERE ID(n) = %s RETURN COLLECT(DISTINCT labels(k)) as attr" % id
             result = neo4j.query_neo4j(q)
             attributes = result.single()['attr']
@@ -325,7 +316,7 @@ class GetById(Resource):
             for attribute in attrs:
                 query = "MATCH (n) WHERE ID(n) = %s" % id
                 query += " WITH n"
-                query += " MATCH (n)-[:HAS]->(:Property)-[:IS]->(%s:%s)" % (attribute, attribute)
+                query += " MATCH (n)-[:HAS]->(:Link:Attr)-[:IS]->(%s:%s)" % (attribute, attribute)
                 query += " RETURN collect(DISTINCT ID(%s)) as %s " % (attribute, attribute)
                 result = neo4j.query_neo4j(query)
                 try:
