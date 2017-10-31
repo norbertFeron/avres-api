@@ -19,16 +19,20 @@ class SetById(Resource):
           @apiParam {String} id id
           @apiSuccess {String} id of the node
        """
-        query = "MATCH (n) WHERE ID(n) = %s" % id
         for key in request.get_json():
-            if not key == 'id':
-                query += " SET n.%s = '%s'" % (key, request.get_json()[key])
-        query += " RETURN ID(n) as id"
-        result = neo4j.query_neo4j(query)
-        try:
-            return makeResponse(result.single()['id'], 200)
-        except ResultError:
-            return makeResponse("Unable to find id: %s" % id, 400)
+            for entry in request.get_json()[key]:
+                if 'pid' in entry.keys():
+                    query = "MATCH (p:Property:%s) WHERE ID(p) = %s RETURN p.value as value" % (key, entry['pid'])
+                    if neo4j.query_neo4j(query).single()['value'] != entry['value']:
+                        query = "MATCH (n)--(l:Link:Prop)--(p:Property:%s) WHERE ID(n) = %s AND ID(p) = %s DETACH DELETE l" % (key, id, entry['pid'])
+                        neo4j.query_neo4j(query)
+                        query = "MERGE (p:Property:%s {value: '%s'}) WITH p MATCH (n) WHERE ID(n) = %s" % (key, entry['value'], id)
+                        query += " WITH p, n MERGE (n)-[:HAS]->(:Link:Prop)-[:IS]->(p)"
+                if 'pid' not in entry.keys():
+                    query = "MERGE (p:Property:%s {value: '%s'}) WITH p MATCH (n) WHERE ID(n) = %s" % (key, entry['value'], id)
+                    query += " WITH p, n MERGE (n)-[:HAS]->(:Link:Prop)-[:IS]->(p)"
+                neo4j.query_neo4j(query)
+        return makeResponse('maybe ok', 200) # todo: manage error code and exception
 
 
 class CreateNode(Resource):
@@ -52,7 +56,7 @@ class CreateNode(Resource):
             if not key == 'id':
                 query += ' MERGE (%s:Property:%s {value: "%s"})' % ('a' + str(index), key, request.get_json()[key])
                 query += ' WITH * MERGE (n)-[:HAS]->(:Link:Prop)-[:IS]->(%s)' % ('a' + str(index))
-                index = index + 1
+                index += 1
         query += " RETURN ID(n) as id"
         result = neo4j.query_neo4j(query)
         try:
@@ -67,14 +71,21 @@ class CreateEdge(Resource):
           @api {post} /createEdge/ Create new edge
           @apiName create
           @apiGroup Setters
-          @apiDescription create a node
-          @apiSuccess {String} id of the node
+          @apiDescription Link two nodes with an edges
+          @apiSuccess ok
        """
         edge = request.get_json()
+        query = "MATCH (edge) WHERE ID(edge) = %s RETURN labels(edge) as labels" % edge['id']
+        result = neo4j.query_neo4j(query).single()
         query = "MATCH (source) WHERE ID(source) = %s" % edge['source']
         query += " WITH source MATCH (target) WHERE ID(target) = %s" % edge['target']
         query += " WITH source, target MATCH (edge) WHERE ID(edge) = %s" % edge['id']
-        query += " WITH source, target, edge CREATE r=(source)-[:HAS]->(edge)-[:HAS]->(target) RETURN r"
+        if 'Attr' in result['labels']:
+            query += " WITH source, target, edge CREATE r=(source)-[:HAS]->(edge)-[:IS]->(target) RETURN r"
+        elif 'Prop' in result['labels']:
+            query += " WITH source, target, edge CREATE r=(source)-[:HAS]->(edge)-[:IS]->(target) RETURN r"
+        else:
+            query += " WITH source, target, edge CREATE r=(source)-[:LINK]->(edge)-[:LINK]->(target) RETURN r"
         result = neo4j.query_neo4j(query)
         try:
             return makeResponse("ok", 200)
