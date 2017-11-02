@@ -289,8 +289,8 @@ class GetById(Resource):
                 for key in keys:
                     query += " OR '%s' IN labels(p)" % key
                 query += ')'
-            query += " OPTIONAL MATCH (l)--(:Link:Attr)--(a:Node:Attribute)"
-            query += " RETURN labels(p) as labels, p.value as value, ID(p) as pid, ID(a), labels(a)"
+            query += " OPTIONAL MATCH (l)--(la:Link:Attr)--(a:Node:Attribute)"
+            query += " RETURN labels(p) as labels, p.value as value, ID(p) as pid, collect(ID(a)) as attrs"
             result = neo4j.query_neo4j(query)
             if not result:
                 return makeResponse("Impossible to find this id", 400)
@@ -300,7 +300,12 @@ class GetById(Resource):
             label.remove('Property')
             if not label[0] in element.keys():
                 element[label[0]] = []
-            element[label[0]].append({"pid": record['pid'], "value": record['value']})
+            prop = {"pid": record['pid'], "value": record['value']}
+            if record['attrs']:
+                prop['attrs'] = []
+                for r in record['attrs']:
+                    prop['attrs'].append(r)
+            element[label[0]].append(prop)
         args = parser.parse_args()
         attrs = args['attrs']
         if attrs and '*' in attrs:

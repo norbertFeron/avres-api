@@ -21,10 +21,22 @@ class SetById(Resource):
        """
         for key in request.get_json():
             for entry in request.get_json()[key]:
+                if key == 'delete':
+                    if 'aid' in entry.keys():
+                        query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s WITH l MATCH (l)--(l2:Link:Attr)--(a) WHERE ID(a) = %s  DETACH DELETE l2" % (id, entry['pid'], entry['aid'])
+                    else:
+                        query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s WITH l OPTIONAL MATCH (l)-[HAS]->(l2:Link) DETACH DELETE l, l2" % (id, entry['pid'])
+                    neo4j.query_neo4j(query)
+                    break
+                if key == 'create':
+                    if 'aid' in entry.keys():
+                        query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s MATCH (a:Attribute) WHERE ID(a) = %s  MERGE (l)-[:HAS]->(:Link:Attr)-[:IS]->(a)" % (id, entry['pid'], entry['aid'])
+                        neo4j.query_neo4j(query)
+                    break
                 if 'pid' in entry.keys():
                     query = "MATCH (p:Property:%s) WHERE ID(p) = %s RETURN p.value as value" % (key, entry['pid'])
                     if neo4j.query_neo4j(query).single()['value'] != entry['value']:
-                        query = "MATCH (n)--(l:Link:Prop)--(p:Property:%s) WHERE ID(n) = %s AND ID(p) = %s DETACH DELETE l" % (key, id, entry['pid'])
+                        query = "MATCH (n)--(l:Link:Prop)--(p:Property:%s) WHERE ID(n) = %s AND ID(p) = %s WITH l OPTIONAL MATCH (l)-[HAS]->(l2:Link) DETACH DELETE l, l2" % (key, id, entry['pid'])
                         neo4j.query_neo4j(query)
                         query = "MERGE (p:Property:%s {value: '%s'}) WITH p MATCH (n) WHERE ID(n) = %s" % (key, entry['value'], id)
                         query += " WITH p, n MERGE (n)-[:HAS]->(:Link:Prop)-[:IS]->(p)"
