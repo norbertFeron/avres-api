@@ -19,31 +19,42 @@ class SetById(Resource):
           @apiParam {String} id id
           @apiSuccess {String} id of the node
        """
-        for key in request.get_json():
-            for entry in request.get_json()[key]:
+        node = request.get_json()
+        if 'reverse' in node.keys():
+            if node['reverse']:
+                print("todo reverse") # todo reverse the edge
+            del node['reverse']
+        newPid = {}
+        for key in node:
+            for entry in node[key]:
                 if key == 'delete':
                     if 'pid' in entry.keys() and 'aid' in entry.keys() and entry['pid'] and entry['aid']:
                         query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s WITH l MATCH (l)--(l2:Link:Attr)--(a) WHERE ID(a) = %s  DETACH DELETE l2" % (id, entry['pid'], entry['aid'])
                     elif 'pid' in entry.keys() and entry['pid']:
                         query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s WITH l OPTIONAL MATCH (l)-[HAS]->(l2:Link) DETACH DELETE l, l2" % (id, entry['pid'])
                     neo4j.query_neo4j(query)
-                    break
-                if key == 'create':
-                    if 'aid' in entry.keys():
-                        query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s MATCH (a:Attribute) WHERE ID(a) = %s  MERGE (l)-[:HAS]->(:Link:Attr)-[:IS]->(a)" % (id, entry['pid'], entry['aid'])
-                        neo4j.query_neo4j(query)
-                    break
-                if 'pid' in entry.keys():
+                elif key != 'create' and 'pid' in entry.keys() and entry['pid'] >= 0:
                     query = "MATCH (p:Property:%s) WHERE ID(p) = %s RETURN p.value as value" % (key, entry['pid'])
                     if neo4j.query_neo4j(query).single()['value'] != entry['value']:
                         query = "MATCH (n)--(l:Link:Prop)--(p:Property:%s) WHERE ID(n) = %s AND ID(p) = %s WITH l OPTIONAL MATCH (l)-[HAS]->(l2:Link) DETACH DELETE l, l2" % (key, id, entry['pid'])
                         neo4j.query_neo4j(query)
                         query = "MERGE (p:Property:%s {value: '%s'}) WITH p MATCH (n) WHERE ID(n) = %s" % (key, entry['value'], id)
                         query += " WITH p, n MERGE (n)-[:HAS]->(:Link:Prop)-[:IS]->(p)"
-                if 'pid' not in entry.keys():
+                    neo4j.query_neo4j(query)
+                elif key != 'create' and 'pid' in entry.keys() and entry['pid'] < 0:
                     query = "MERGE (p:Property:%s {value: '%s'}) WITH p MATCH (n) WHERE ID(n) = %s" % (key, entry['value'], id)
-                    query += " WITH p, n MERGE (n)-[:HAS]->(:Link:Prop)-[:IS]->(p)"
-                neo4j.query_neo4j(query)
+                    query += " WITH p, n MERGE (n)-[:HAS]->(:Link:Prop)-[:IS]->(p) RETURN ID(p) as pid"
+                    newPid[entry['pid']] = neo4j.query_neo4j(query).single()['pid']
+        for key in node:
+            for entry in node[key]:
+                if key == 'create':
+                    if entry['pid'] >= 0:
+                        pid = entry['pid']
+                    else:
+                        pid = newPid[entry['pid']]
+                    if 'aid' in entry.keys():
+                        query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s MATCH (a:Attribute) WHERE ID(a) = %s  MERGE (l)-[:HAS]->(:Link:Attr)-[:IS]->(a)" % (id, pid, entry['aid'])
+                        neo4j.query_neo4j(query)
         return makeResponse('maybe ok', 200) # todo: manage error code and exception
 
 
@@ -59,22 +70,39 @@ class CreateNode(Resource):
         node = request.get_json()
         labels = node['labels']
         del node['labels']
+        if 'reverse' in node.keys():
+            del node['reverse']
         query = "CREATE (n:"
         for l in labels:
             query += "%s:" % l
-        query = "%s) " % query[:-1]
-        index = 0
-        for key in request.get_json():
-            if not key == 'id':
-                query += ' MERGE (%s:Property:%s {value: "%s"})' % ('a' + str(index), key, request.get_json()[key])
-                query += ' WITH * MERGE (n)-[:HAS]->(:Link:Prop)-[:IS]->(%s)' % ('a' + str(index))
-                index += 1
-        query += " RETURN ID(n) as id"
-        result = neo4j.query_neo4j(query)
-        try:
-            return makeResponse(result.single()['id'], 200)
-        except ResultError:
-            return makeResponse("Unable to create a new node", 400)
+        query = "%s) RETURN ID(n) as id" % query[:-1]
+        id = neo4j.query_neo4j(query).single()['id']
+        newPid = {}
+        for key in node:
+            for entry in node[key]:
+                if key != 'create' and 'pid' in entry.keys() and entry['pid'] >= 0:
+                    query = "MATCH (p:Property:%s) WHERE ID(p) = %s RETURN p.value as value" % (key, entry['pid'])
+                    if neo4j.query_neo4j(query).single()['value'] != entry['value']:
+                        query = "MATCH (n)--(l:Link:Prop)--(p:Property:%s) WHERE ID(n) = %s AND ID(p) = %s WITH l OPTIONAL MATCH (l)-[HAS]->(l2:Link) DETACH DELETE l, l2" % (key, id, entry['pid'])
+                        neo4j.query_neo4j(query)
+                        query = "MERGE (p:Property:%s {value: '%s'}) WITH p MATCH (n) WHERE ID(n) = %s" % (key, entry['value'], id)
+                        query += " WITH p, n MERGE (n)-[:HAS]->(:Link:Prop)-[:IS]->(p)"
+                    neo4j.query_neo4j(query)
+                elif key != 'create' and 'pid' in entry.keys() and 'value' in entry.keys() and entry['pid'] < 0 and entry['value']:
+                    query = "MERGE (p:Property:%s {value: '%s'}) WITH p MATCH (n) WHERE ID(n) = %s" % (key, entry['value'], id)
+                    query += " WITH p, n MERGE (n)-[:HAS]->(:Link:Prop)-[:IS]->(p) RETURN ID(p) as pid"
+                    newPid[entry['pid']] = neo4j.query_neo4j(query).single()['pid']
+        for key in node:
+            for entry in node[key]:
+                if key == 'create':
+                    if entry['pid'] >= 0:
+                        pid = entry['pid']
+                    else:
+                        pid = newPid[entry['pid']]
+                    if 'aid' in entry.keys():
+                        query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s MATCH (a:Attribute) WHERE ID(a) = %s  MERGE (l)-[:HAS]->(:Link:Attr)-[:IS]->(a)" % (id, pid, entry['aid'])
+                        neo4j.query_neo4j(query)
+        return makeResponse(id, 200)
 
 
 class CreateEdge(Resource):
@@ -113,12 +141,13 @@ class DeleteById(Resource):
           @apiGroup Setters
           @apiDescription delete a node
        """
-        query = "MATCH (n)--(pl:Prop)--(p:Property) WHERE ID(n) = %s DETACH DELETE n, pl RETURN ID(p) as prop" % id
+        query = "MATCH (n)--(pl:Prop)--(p:Property) WHERE ID(n) = %s DETACH DELETE pl RETURN ID(p) as prop" % id
         result = neo4j.query_neo4j(query)
         for record in result:
             query = "MATCH (p:Property) WHERE id(p) = %s AND NOT (p)--() DETACH DELETE p" % record['prop']
             neo4j.query_neo4j(query)
-        try:
-            return makeResponse('Deleted', 200) # todo: error managing
-        except ResultError:
-            return makeResponse("Unable to delete node", 400)
+        query = "MATCH (n)--(al:Attr) WHERE ID(n) = %s DETACH DELETE al" % id
+        neo4j.query_neo4j(query)
+        query = "MATCH (n) WHERE ID(n) = %s DETACH DELETE n" % id
+        neo4j.query_neo4j(query)
+        return makeResponse('Deleted', 200) # todo: error managing
