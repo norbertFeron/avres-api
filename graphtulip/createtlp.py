@@ -79,7 +79,7 @@ class CreateTlp(object):
         if 'label_%s' % key in record.keys():
             self.property_label[n] = str(record['label_%s' % key])
         else:
-            self.property_label[n] = str(self.getLabel(record['id_%s' % key], str(record['labels_%s' % key])))
+            self.property_label[n] = str(self.getLabel(record['id_%s' % key], record['labels_%s' % key]))
         return n
 
     def addEdge(self, record, key, args, n1, n2, duplicate=False):

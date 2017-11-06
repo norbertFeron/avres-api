@@ -22,9 +22,9 @@ class SetById(Resource):
         for key in request.get_json():
             for entry in request.get_json()[key]:
                 if key == 'delete':
-                    if 'aid' in entry.keys():
+                    if 'pid' in entry.keys() and 'aid' in entry.keys() and entry['pid'] and entry['aid']:
                         query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s WITH l MATCH (l)--(l2:Link:Attr)--(a) WHERE ID(a) = %s  DETACH DELETE l2" % (id, entry['pid'], entry['aid'])
-                    else:
+                    elif 'pid' in entry.keys() and entry['pid']:
                         query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s WITH l OPTIONAL MATCH (l)-[HAS]->(l2:Link) DETACH DELETE l, l2" % (id, entry['pid'])
                     neo4j.query_neo4j(query)
                     break
