@@ -20,9 +20,11 @@ class SetById(Resource):
           @apiSuccess {String} id of the node
        """
         node = request.get_json()
-        if 'reverse' in node.keys():
+        if 'reverse' in node.keys() and 'source' in node.keys() and 'target' in node.keys():
             if node['reverse']:
-                print("todo reverse") # todo reverse the edge
+                query = 'MATCH (s)-[rs:LINK]->(r)-[rt:LINK]->(t) WHERE ID(r) = %s AND ID(s) = %s AND ID(t) = %s' % (id, node['source'], node['target'])
+                query += ' CREATE (t)-[:LINK]->(r)-[:LINK]->(s) WITH rt, rs DELETE rt, rs'
+                neo4j.query_neo4j(query)
             del node['reverse']
         newPid = {}
         for key in node:
@@ -33,7 +35,7 @@ class SetById(Resource):
                     elif 'pid' in entry.keys() and entry['pid']:
                         query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s WITH l OPTIONAL MATCH (l)-[HAS]->(l2:Link) DETACH DELETE l, l2" % (id, entry['pid'])
                     neo4j.query_neo4j(query)
-                elif key != 'create' and 'pid' in entry.keys() and entry['pid'] >= 0:
+                elif key != 'create' and key != 'source' and key != 'target' and'pid' in entry.keys() and entry['pid'] >= 0:
                     query = "MATCH (p:Property:%s) WHERE ID(p) = %s RETURN p.value as value" % (key, entry['pid'])
                     if neo4j.query_neo4j(query).single()['value'] != entry['value']:
                         query = "MATCH (n)--(l:Link:Prop)--(p:Property:%s) WHERE ID(n) = %s AND ID(p) = %s WITH l OPTIONAL MATCH (l)-[HAS]->(l2:Link) DETACH DELETE l, l2" % (key, id, entry['pid'])
@@ -41,7 +43,7 @@ class SetById(Resource):
                         query = "MERGE (p:Property:%s {value: '%s'}) WITH p MATCH (n) WHERE ID(n) = %s" % (key, entry['value'], id)
                         query += " WITH p, n MERGE (n)-[:HAS]->(:Link:Prop)-[:IS]->(p)"
                     neo4j.query_neo4j(query)
-                elif key != 'create' and 'pid' in entry.keys() and entry['pid'] < 0:
+                elif key != 'create' and key != 'source' and key != 'target' and 'pid' in entry.keys() and entry['pid'] < 0:
                     query = "MERGE (p:Property:%s {value: '%s'}) WITH p MATCH (n) WHERE ID(n) = %s" % (key, entry['value'], id)
                     query += " WITH p, n MERGE (n)-[:HAS]->(:Link:Prop)-[:IS]->(p) RETURN ID(p) as pid"
                     newPid[entry['pid']] = neo4j.query_neo4j(query).single()['pid']
