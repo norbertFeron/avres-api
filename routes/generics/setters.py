@@ -25,6 +25,7 @@ class SetById(Resource):
                 query = 'MATCH (s)-[rs:LINK]->(r)-[rt:LINK]->(t) WHERE ID(r) = %s AND ID(s) = %s AND ID(t) = %s' % (id, node['source'], node['target'])
                 query += ' CREATE (t)-[:LINK]->(r)-[:LINK]->(s) WITH rt, rs DELETE rt, rs'
                 neo4j.query_neo4j(query)
+        if 'reverse' in node.keys():
             del node['reverse']
         newPid = {}
         for key in node:

@@ -101,49 +101,34 @@ class CreateTlp(object):
         return e
 
     def createGraphQuery(self, args):
-        query = "MATCH "
-        where = ""
+        query = ""
         n=0
         edges=[]
-        edge_waiting = False
-        waiting_edge = False
-        if args['directed'] == 'true':
-            directed = '>'
-        else:
-            directed = ''
+        print(args)
         for element in args['query'].split('/'):
-            filters = element.split('->')
-            if filters[0]:
-                if 'Link' in filters[0]:
-                    if edge_waiting:
-                        query += "--%s(e%s:%s)" % (directed, len(edges), filters[0])
-                        edges.append({'source': n - 1, 'target': n})
-                    else:
-                        waiting_edge = "--%s(e%s:%s)" % (directed, len(edges), filters[0])
-                    if '*' not in filters[1] and '*' not in filters[2]:
-                        where = " e%s.%s = '%s' AND" % (len(edges)-1, filters[1], filters[2])
-                    edge_waiting = False
+            property = element.split('->')
+            if property[0]:
+                print(property[0])
+                if 'Link' in property[0]:
+                    print("link")
+                    query += ' MATCH (n%s)-->(e%s:%s)-->(n%s)' % (n - 1, len(edges), property[0], n)
+                    if len(property) > 1:
+                        for p in property[1:]:
+                            prop = p.split("=")
+                            if not (prop[0] == 'AND' or prop[0] == 'OR'):
+                                query += " MATCH (e%s:%s)" % (len(edges), property[0])
+                                query += "-->(:Prop)-->(:Property:%s {value: '%s'})" % (prop[0], prop[1])
+                    edges.append({'source': n - 1, 'target': n})
                 else:
-                    if edge_waiting:
-                        query += " MATCH "
-                    elif n > 0:
-                        query += "--%s" % directed
-                    query += "(n%s:%s)" % (n, filters[0])
-                    if '*' not in filters[1] and '*' not in filters[2]:
-                        where += " n%s.%s = '%s' AND" % (n, filters[1], filters[2])
+                    if len(property) > 1:
+                        for p in property[1:]:
+                            prop = p.split("=")
+                            if not (prop[0] == 'AND' or prop[0] == 'OR'):
+                                query += " MATCH (n%s:%s)" % (n, property[0])
+                                query += "-->(:Prop)-->(:Property:%s {value: '%s'})" % (prop[0], prop[1])
+                    else:
+                        query += " MATCH (n%s:%s)" % (n, property[0])
                     n += 1
-                    edge_waiting = True
-                    if waiting_edge:
-                        query += " WITH * MATCH (n%s)%s--%s(n%s)" % (n-2, waiting_edge, directed, n-1) # Can be MATCH OPTIONAL
-                        edges.append({'source': n-2, 'target': n-1})
-                        waiting_edge = False
-        if n == 1 and not edge_waiting:
-            query += "--%s(n1)" % directed
-            where += " NOT 'Link' in labels(n1) AND"
-            n += 1
-        if len(where) > 0:
-            where = where[:-4]
-            query += " WHERE " + where
         query += ' RETURN '
         for i in range(0, n):
             query += "ID(n%s) as id_n%s, labels(n%s) as labels_n%s, " % (i, i, i, i)

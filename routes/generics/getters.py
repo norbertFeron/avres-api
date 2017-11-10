@@ -119,7 +119,7 @@ class GetPropertiesByLabel(Resource):
        @apiSuccess {Array} result Array of property.
     """
     def get(self, label):
-        query = "MATCH (n:%s)--(:Link:Prop)--(p:Property) WITH p UNWIND labels(p) as k RETURN COLLECT(DISTINCT k) as keys" % label
+        query = "MATCH (n:%s)-->(:Link:Prop)-->(p:Property) WITH p UNWIND labels(p) as k RETURN COLLECT(DISTINCT k) as keys" % label
         result = neo4j.query_neo4j(query)
         keys = result.single()['keys']
         if 'Property' in keys:
@@ -289,7 +289,7 @@ class GetById(Resource):
                 for key in keys:
                     query += " OR '%s' IN labels(p)" % key
                 query += ')'
-            query += " OPTIONAL MATCH (l)--(la:Link:Attr)--(a:Node:Attribute)"
+            query += " OPTIONAL MATCH (l)-->(la:Link:Attr)-->(a:Node:Attribute)"
             query += " RETURN labels(p) as labels, p.value as value, ID(p) as pid, collect(ID(a)) as attrs"
             result = neo4j.query_neo4j(query)
             if not result:
@@ -319,6 +319,12 @@ class GetById(Resource):
                     a.remove('Attribute')
                 if 'Node' in a:
                     a.remove('Node')
+                if 'Geo' in a:
+                    a.remove('Geo')
+                if 'Time' in a:
+                    a.remove('Time')
+                if 'SubGraph' in a:
+                    a.remove('SubGraph')
                 attrs.append(a[0])  # Unpack
         if attrs:
             for attribute in attrs:
