@@ -36,6 +36,12 @@ class SetById(Resource):
                     elif 'pid' in entry.keys() and entry['pid']:
                         query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s WITH l OPTIONAL MATCH (l)-[HAS]->(l2:Link) DETACH DELETE l, l2" % (id, entry['pid'])
                     neo4j.query_neo4j(query)
+                elif key == 'addAttrs':
+                    query = "MATCH (n) MATCH (a:Node:Attribute) WHERE ID(n) = %s AND ID(a) = %s MERGE (n)-[:HAS]->(l:Link:Attr)-[:IS]->(a)" % (id, entry)
+                    neo4j.query_neo4j(query)
+                elif key == 'delAttrs':
+                    query = "MATCH (n)--(al:Link:Attr)--(a:Node:Attribute) WHERE ID(n) = %s AND ID(a) = %s DETACH DELETE al" % (id, entry)
+                    neo4j.query_neo4j(query)
                 elif key != 'create' and key != 'source' and key != 'target' and'pid' in entry.keys() and entry['pid'] >= 0:
                     query = "MATCH (p:Property:%s) WHERE ID(p) = %s RETURN p.value as value" % (key, entry['pid'])
                     if neo4j.query_neo4j(query).single()['value'] != entry['value']:
@@ -82,8 +88,11 @@ class CreateNode(Resource):
         id = neo4j.query_neo4j(query).single()['id']
         newPid = {}
         for key in node:
-            for entry in node[key]:
-                if key != 'create' and 'pid' in entry.keys() and entry['pid'] >= 0:
+            for entry in node[key]: # todo check if the user want to delete somethings not already create
+                if key == 'addAttrs':
+                    query = "MATCH (n) MATCH (p:Node:Attribute) WHERE ID(n) = %s AND ID(p) = %s MERGE (n)-[:HAS]->(l:Link:Attr)-[:IS]->(p)" % (id, entry)
+                    neo4j.query_neo4j(query)
+                elif key != 'create' and 'pid' in entry.keys() and entry['pid'] >= 0:
                     query = "MATCH (p:Property:%s) WHERE ID(p) = %s RETURN p.value as value" % (key, entry['pid'])
                     if neo4j.query_neo4j(query).single()['value'] != entry['value']:
                         query = "MATCH (n)--(l:Link:Prop)--(p:Property:%s) WHERE ID(n) = %s AND ID(p) = %s WITH l OPTIONAL MATCH (l)-[HAS]->(l2:Link) DETACH DELETE l, l2" % (key, id, entry['pid'])
