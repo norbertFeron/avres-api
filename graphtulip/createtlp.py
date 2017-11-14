@@ -102,12 +102,15 @@ class CreateTlp(object):
 
     def createGraphQuery(self, args):
         query = ""
+        match = ""
+        optional = ""
+        is_optional = False
         n=0
         edges=[]
         print(args)
         for element in args['query'].split('/'):
             property = element.split('->')
-            if property[0]:
+            if property[0] and not property[0] == 'AND' and not property[0] == 'OR' and not property[0] == 'NOT':
                 print(property[0])
                 if 'Link' in property[0]:
                     print("link")
@@ -129,7 +132,16 @@ class CreateTlp(object):
                     else:
                         query += " MATCH (n%s:%s)" % (n, property[0])
                     n += 1
-        query += ' RETURN '
+                if is_optional:
+                    optional += ' OPTIONAL' + query
+                    is_optional = False
+                else:
+                    match += query
+                query = ''
+            elif property[0] == 'OR':
+                is_optional = True
+
+        query += match + optional + ' RETURN '
         for i in range(0, n):
             query += "ID(n%s) as id_n%s, labels(n%s) as labels_n%s, " % (i, i, i, i)
         for i, e in enumerate(edges):
