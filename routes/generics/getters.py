@@ -171,13 +171,32 @@ class GetPropertyValueByLabel(Resource):
        @apiGroup Getters
        @apiDescription Get possible property value for a label  
        @apiParam {String} label Label
-       @apiParam {String} property Property
+       @apiParam {String} property Property.
        @apiSuccess {Array} result Array of value.
     """
     def get(self, label, key):
         query = "MATCH (n:%s)--(:Link:Prop)--(p:Property:%s) WITH p UNWIND p.value as v RETURN COLLECT(DISTINCT v) as values" % (label, key)
         result = neo4j.query_neo4j(query)
         return makeResponse(result.single()['values'], 200)
+
+
+class GetPropertyValueAndIdByLabel(Resource):
+    """
+       @api {get} /getPropertyValueAndId/:label/:property Get value and id by property/label
+       @apiName GetPropertyValueByLabel
+       @apiGroup Getters
+       @apiDescription Get possible property value for a label
+       @apiParam {String} label Label
+       @apiParam {String} property Property.
+       @apiSuccess {Array} result Array of value.
+    """
+    def get(self, label, key):
+        query = "MATCH (n:%s)--(:Link:Prop)--(p:Property:%s) RETURN p.value as value, id(n) as id" % (label, key)
+        result = neo4j.query_neo4j(query)
+        response = []
+        for record in result:
+            response.append({'value': record['value'], 'id': record['id']})
+        return makeResponse(response, 200)
 
 
 class GetByLabel(Resource):  # todo convert date node to readable date when hydrate
