@@ -3,7 +3,8 @@ import configparser
 import os
 import time
 from tulip import tlp
-from flask_restful import Resource, reqparse
+from flask_restful import Resource, reqparse, abort
+from neo4j.v1.exceptions import CypherError
 from routes.utils import makeResponse, getJson, getHtml, makeHtmlResponse, applyLayout
 from graphtulip.createtlp import CreateTlp
 
@@ -56,7 +57,10 @@ class GetQueryGraph(Resource):
     def get(self):
         creator = CreateTlp()
         params = parser.parse_args()
-        graph = creator.createGraphQuery(params)
+        try:
+            graph = creator.createGraphQuery(params)
+        except (CypherError,  KeyError) as e:
+           abort(400, description="Invalid request.")
         args = parser.parse_args()
         if len(graph.edges()) == 0:
             args['layout'] = 'Circular (OGDF)'
