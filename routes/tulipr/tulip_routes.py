@@ -1,6 +1,6 @@
 import glob
 from routes.tulipr.tulip_create import *
-from routes.tulipr.tulip_layout import GetLayoutAlgorithm
+from routes.tulipr.tulip_layout import *
 
 
 def add_tulip_routes(api):
@@ -13,3 +13,4 @@ def add_tulip_routes(api):
 
     # Layout
     api.add_resource(GetLayoutAlgorithm, '/layoutAlgorithm')
+    api.add_resource(drawGraph, '/drawGraph/<string:layout>')
