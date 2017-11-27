@@ -107,20 +107,17 @@ class CreateTlp(object):
         is_optional = False
         n=0
         edges=[]
-        print(args)
-        for element in args['query'].split('/'):
+        for element in args['query'].split('\\'):
             property = element.split('->')
             if property[0] and not property[0] == 'AND' and not property[0] == 'OR' and not property[0] == 'NOT':
-                print(property[0])
                 if 'Link' in property[0]:
-                    print("link")
                     query += ' MATCH (n%s)-->(e%s:%s)-->(n%s)' % (n - 1, len(edges), property[0], n)
                     if len(property) > 1:
                         for p in property[1:]:
                             prop = p.split("=")
                             if not (prop[0] == 'AND' or prop[0] == 'OR'):
                                 query += " MATCH (e%s:%s)" % (len(edges), property[0])
-                                query += "-->(:Prop)-->(:Property:%s {value: '%s'})" % (prop[0], prop[1])
+                                query += '-->(:Prop)-->(:Property:%s {value: "%s"})' % (prop[0], prop[1])
                     edges.append({'source': n - 1, 'target': n})
                 else:
                     if len(property) > 1:
@@ -128,7 +125,7 @@ class CreateTlp(object):
                             prop = p.split("=")
                             if not (prop[0] == 'AND' or prop[0] == 'OR'):
                                 query += " MATCH (n%s:%s)" % (n, property[0])
-                                query += "-->(:Prop)-->(:Property:%s {value: '%s'})" % (prop[0], prop[1])
+                                query += '-->(:Prop)-->(:Property:%s {value: "%s"})' % (prop[0], prop[1])
                     else:
                         query += " MATCH (n%s:%s)" % (n, property[0])
                     n += 1
