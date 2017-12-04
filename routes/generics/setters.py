@@ -37,7 +37,7 @@ class SetById(Resource):
                         query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s WITH l OPTIONAL MATCH (l)-[HAS]->(l2:Link) DETACH DELETE l, l2" % (id, entry['pid'])
                     neo4j.query_neo4j(query)
                 elif key == 'addAttrs':
-                    query = "MATCH (n) MATCH (a:Node:Attribute) WHERE ID(n) = %s AND ID(a) = %s MERGE (n)-[:HAS]->(l:Link:Attr)-[:IS]->(a)" % (id, entry)
+                    query = "MATCH (n) MATCH (a:Node:Attribute) WHERE ID(n) = %s AND ID(a) = %s MERGE (n)-[:HAS]->(l:Link:Attr {type: '%s'})-[:IS]->(a)" % (id, entry['aid'], entry['type'])
                     neo4j.query_neo4j(query)
                 elif key == 'delAttrs':
                     query = "MATCH (n)--(al:Link:Attr)--(a:Node:Attribute) WHERE ID(n) = %s AND ID(a) = %s DETACH DELETE al" % (id, entry)
@@ -62,7 +62,7 @@ class SetById(Resource):
                     else:
                         pid = newPid[entry['pid']]
                     if 'aid' in entry.keys():
-                        query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s MATCH (a:Attribute) WHERE ID(a) = %s  MERGE (l)-[:HAS]->(:Link:Attr)-[:IS]->(a)" % (id, pid, entry['aid'])
+                        query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s MATCH (a:Attribute) WHERE ID(a) = %s  MERGE (l)-[:HAS]->(:Link:Attr {type: '%s'})-[:IS]->(a)" % (id, pid, entry['aid'], entry['type'])
                         neo4j.query_neo4j(query)
         return makeResponse('maybe ok', 200) # todo: manage error code and exception
 
@@ -90,7 +90,7 @@ class CreateNode(Resource):
         for key in node:
             for entry in node[key]: # todo check if the user want to delete somethings not already create
                 if key == 'addAttrs':
-                    query = "MATCH (n) MATCH (p:Node:Attribute) WHERE ID(n) = %s AND ID(p) = %s MERGE (n)-[:HAS]->(l:Link:Attr)-[:IS]->(p)" % (id, entry)
+                    query = "MATCH (n) MATCH (p:Node:Attribute) WHERE ID(n) = %s AND ID(p) = %s MERGE (n)-[:HAS]->(l:Link:Attr {type: '%s'})-[:IS]->(p)" % (id, entry['aid'], entry['type'])
                     neo4j.query_neo4j(query)
                 elif key != 'create' and 'pid' in entry.keys() and entry['pid'] >= 0:
                     query = "MATCH (p:Property:%s) WHERE ID(p) = %s RETURN p.value as value" % (key, entry['pid'])
@@ -112,7 +112,7 @@ class CreateNode(Resource):
                     else:
                         pid = newPid[entry['pid']]
                     if 'aid' in entry.keys():
-                        query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s MATCH (a:Attribute) WHERE ID(a) = %s  MERGE (l)-[:HAS]->(:Link:Attr)-[:IS]->(a)" % (id, pid, entry['aid'])
+                        query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s MATCH (a:Attribute) WHERE ID(a) = %s  MERGE (l)-[:HAS]->(:Link:Attr {type: '%s'})-[:IS]->(a)" % (id, pid, entry['aid'], entry['type'])
                         neo4j.query_neo4j(query)
         return makeResponse(id, 200)
 
