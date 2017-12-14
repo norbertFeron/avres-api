@@ -4,6 +4,8 @@ from connector import neo4j
 from flask_restful import Resource, reqparse, request
 from routes.utils import makeResponse
 
+import time
+
 parser = reqparse.RequestParser()
 parser.add_argument('keys', action='append')
 parser.add_argument('filters', action='append')
@@ -19,6 +21,40 @@ class SetById(Resource):
           @apiParam {String} id id
           @apiSuccess {String} id of the node
        """
+
+        def setDate(input, target, type):
+            t = input.split(':')[1]
+            split = t.split('/')
+            if len(split) == 1:  # Year
+                timestamp = time.mktime(time.strptime("01/01/" + t, "%d/%m/%Y")) + (3600 * 24)
+                query = ' CALL ga.timetree.single({time: %s, create: true})' % (str(timestamp)[:-2] + "000")
+                query = "MATCH (n) WHERE ID(n) = %s MERGE (n)-[:HAS]->(l:Link:Attr {type: '%s'}) WITH l" % (target, type)
+                query += " MATCH (y:Year) WHERE y.value = %s" % t.split('/')[0]
+                query += " CREATE (l)-[:IS]->(y)"
+                neo4j.query_neo4j(query)
+
+            elif len(split) == 2:  # Month
+                timestamp = time.mktime(time.strptime("01/" + split[0] + "/" + split[1], "%d/%m/%Y")) + (3600 * 24)
+                query = "CALL ga.timetree.single({time: %s, create: true})" % (str(timestamp)[:-2] + "000")
+                neo4j.query_neo4j(query)
+                if split[0][:1] == 0:
+                    split[0] = split[0][-1:]
+                query = "MATCH (n) WHERE ID(n) = %s MERGE (n)-[:HAS]->(l:Link:Attr {type: '%s'}) WITH l" % (target, type)
+                query += " MATCH (m:Month)<-[:CHILD]-(y:Year) WHERE m.value = %s AND y.value = %s" % (split[0], split[1])
+                query += " CREATE (l)-[:IS]->(m)"
+                neo4j.query_neo4j(query)
+
+            elif len(split) == 3:  # Day
+                query = "MATCH (n) WHERE ID(n) = %s MERGE (n)-[:HAS]->(l:Link:Attr {type: '%s'}) WITH l" % (target, type)
+                timestamp = time.mktime(time.strptime(split[0] + "/" + split[1] + "/" + split[2], "%d/%m/%Y")) + (3600 * 24)
+                query += ' CALL ga.timetree.events.attach({node: l, time: %s, relationshipType: "IS"})' % (str(timestamp + 10)[:-2] + "000")
+                query += ' YIELD node RETURN node'
+                neo4j.query_neo4j(query)
+
+            neo4j.query_neo4j("MATCH (d:Day)<-[:CHILD]-(p1:Month)<-[:CHILD]-(p2:Year) WHERE NOT 'Time' in labels(d) SET d:Node:Attribute:Time CREATE (d)-[:HAS]->(lp:Link:Prop)-[:IS]->(p:Property:display {value: d.value + '/' + p1.value + '/' + p2.value})")
+            neo4j.query_neo4j("MATCH (m:Month)<-[:CHILD]-(p1:Year) WHERE NOT 'Time' in labels(m) SET m:Node:Attribute:Time  CREATE (m)-[:HAS]->(lp:Link:Prop)-[:IS]->(p:Property:display {value: m.value + '/' + p1.value})")
+            neo4j.query_neo4j("MATCH (y:Year) WHERE NOT 'Time' in labels(y) SET y:Node:Attribute:Time CREATE (y)-[:HAS]->(lp:Link:Prop)-[:IS]->(p:Property:display {value: y.value})")
+
         node = request.get_json()
         if 'reverse' in node.keys() and 'source' in node.keys() and 'target' in node.keys():
             if node['reverse']:
@@ -37,8 +73,11 @@ class SetById(Resource):
                         query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s WITH l OPTIONAL MATCH (l)-[HAS]->(l2:Link) DETACH DELETE l, l2" % (id, entry['pid'])
                     neo4j.query_neo4j(query)
                 elif key == 'addAttrs':
-                    query = "MATCH (n) MATCH (a:Node:Attribute) WHERE ID(n) = %s AND ID(a) = %s MERGE (n)-[:HAS]->(l:Link:Attr {type: '%s'})-[:IS]->(a)" % (id, entry['aid'], entry['type'])
-                    neo4j.query_neo4j(query)
+                    if 'Time' in str(entry['aid']):
+                        setDate(entry['aid'], id, entry['type'])
+                    else:
+                        query = "MATCH (n) MATCH (a:Node:Attribute) WHERE ID(n) = %s AND ID(a) = %s MERGE (n)-[:HAS]->(l:Link:Attr {type: '%s'})-[:IS]->(a)" % (id, entry['aid'], entry['type'])
+                        neo4j.query_neo4j(query)
                 elif key == 'delAttrs':
                     query = "MATCH (n)--(al:Link:Attr)--(a:Node:Attribute) WHERE ID(n) = %s AND ID(a) = %s DETACH DELETE al" % (id, entry)
                     neo4j.query_neo4j(query)
@@ -62,8 +101,13 @@ class SetById(Resource):
                     else:
                         pid = newPid[entry['pid']]
                     if 'aid' in entry.keys():
-                        query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s MATCH (a:Attribute) WHERE ID(a) = %s  MERGE (l)-[:HAS]->(:Link:Attr {type: '%s'})-[:IS]->(a)" % (id, pid, entry['aid'], entry['type'])
-                        neo4j.query_neo4j(query)
+                        if 'Time' in str(entry['aid']):
+                            query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s RETURN ID(l) as lpid" % (id, pid)
+                            lpid = neo4j.query_neo4j(query).single()['lpid']
+                            setDate(entry['aid'], lpid, entry['type'])
+                        else:
+                            query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s AND ID(p) = %s MATCH (a:Attribute) WHERE ID(a) = %s  MERGE (l)-[:HAS]->(:Link:Attr {type: '%s'})-[:IS]->(a)" % (id, pid, entry['aid'], entry['type'])
+                            neo4j.query_neo4j(query)
         return makeResponse('maybe ok', 200) # todo: manage error code and exception
 
 
