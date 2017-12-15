@@ -15,7 +15,7 @@ def setDate(input, target, type):
     t = input.split(':')[1]
     split = t.split('/')
     if len(split) == 1:  # Year
-        timestamp = time.mktime(time.strptime("01/01/" + t, "%d/%m/%Y")) + (3600 * 24)
+        timestamp = time.mktime(time.strptime("01/01/" + t, "%d/%m/%Y"))
         query = ' CALL ga.timetree.single({time: %s, create: true})' % (str(timestamp)[:-2] + "000")
         query = "MATCH (n) WHERE ID(n) = %s MERGE (n)-[:HAS]->(l:Link:Attr {type: '%s'}) WITH l" % (target, type)
         query += " MATCH (y:Year) WHERE y.value = %s" % t.split('/')[0]
@@ -23,7 +23,7 @@ def setDate(input, target, type):
         neo4j.query_neo4j(query)
 
     elif len(split) == 2:  # Month
-        timestamp = time.mktime(time.strptime("01/" + split[0] + "/" + split[1], "%d/%m/%Y")) + (3600 * 24)
+        timestamp = time.mktime(time.strptime("01/" + split[0] + "/" + split[1], "%d/%m/%Y"))
         query = "CALL ga.timetree.single({time: %s, create: true})" % (str(timestamp)[:-2] + "000")
         neo4j.query_neo4j(query)
         if split[0][:1] == '0':
@@ -35,7 +35,7 @@ def setDate(input, target, type):
 
     elif len(split) == 3:  # Day
         query = "MATCH (n) WHERE ID(n) = %s MERGE (n)-[:HAS]->(l:Link:Attr {type: '%s'}) WITH l" % (target, type)
-        timestamp = time.mktime(time.strptime(split[0] + "/" + split[1] + "/" + split[2], "%d/%m/%Y")) + (3600 * 24)
+        timestamp = time.mktime(time.strptime(split[0] + "/" + split[1] + "/" + split[2], "%d/%m/%Y"))
         query += ' CALL ga.timetree.events.attach({node: l, time: %s, relationshipType: "IS"})' % (str(timestamp + 10)[:-2] + "000")
         query += ' YIELD node RETURN node'
         neo4j.query_neo4j(query)
