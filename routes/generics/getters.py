@@ -396,10 +396,15 @@ class GetById(Resource):
                 query += " WITH n"
                 query += " MATCH (n)-[:HAS]->(l:Link:Attr)-[:IS]->(%s:%s)" % (attribute.replace(':', ''), attribute)
                 # if attribute.split(':')[0] == 'Geo' or attribute.split(':')[0] == 'Time':
-                query += " RETURN l.type as type, collect(DISTINCT ID(%s)) as %s " % (attribute.replace(':', ''), attribute.replace(':', ''))
+                query += " RETURN l.type as type, collect(DISTINCT ID(l)) as aid%s, collect(DISTINCT ID(%s)) as %s " % (attribute.replace(':', ''), attribute.replace(':', ''), attribute.replace(':', ''))
                 result = neo4j.query_neo4j(query)
                 for record in result:
-                    element[attribute + ':' + record['type']] = record[attribute.replace(':', '')]
+                    elements = []
+                    i = 0
+                    for e in record[attribute.replace(':', '')]:
+                        elements.append({'id': e, 'laid': record['aid' + attribute.replace(':', '')][i]})
+                        i += 1
+                    element[attribute + ':' + record['type']] = elements
                 # else:
                 #     query += " RETURN collect(DISTINCT ID(%s)) as %s " % (attribute.replace(':', ''), attribute.replace(':', ''))
                 #     result = neo4j.query_neo4j(query)
