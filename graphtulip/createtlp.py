@@ -223,22 +223,22 @@ class CreateTlp(object):
                     n = nodes_done[record['id_neigh']]
                 if record['id_edge'] and record['id_edge'] not in edges_done:
                     if target_to_neigh:
-                        self.addEdge(record, 'edge', args, t, n)
+                        self.addEdge(record, 'edge', args, n, t)
                         edges_done[record['id_edge']] = {'source': [t.id], 'target': [n.id], 'count': 1}
                     else:
-                        self.addEdge(record, 'edge', args, n, t)
+                        self.addEdge(record, 'edge', args, t, n)
                         edges_done[record['id_edge']] = {'source': [n.id], 'target': [t.id], 'count': 1}
                 else:
                     if target_to_neigh and not (t.id in edges_done[record['id_edge']]['source'] and n.id in edges_done[record['id_edge']]['target']):
                         edges_done[record['id_edge']]['source'].append(t.id)
                         edges_done[record['id_edge']]['target'].append(n.id)
                         edges_done[record['id_edge']]['count'] += 1
-                        self.addEdge(record, 'edge', args, t, n, edges_done[record['id_edge']]['count'])
+                        self.addEdge(record, 'edge', args, n, t, edges_done[record['id_edge']]['count'])
                     elif not (n.id in edges_done[record['id_edge']]['source'] and t.id in edges_done[record['id_edge']]['target']):
                         edges_done[record['id_edge']]['source'].append(n.id)
                         edges_done[record['id_edge']]['target'].append(t.id)
                         edges_done[record['id_edge']]['count'] += 1
-                        self.addEdge(record, 'edge', args, n, t, edges_done[record['id_edge']]['count'])
+                        self.addEdge(record, 'edge', args, t, n, edges_done[record['id_edge']]['count'])
 
 
         query = "MATCH (n) WHERE ID(n) = %s WITH n MATCH (n)-[]->(e:%s)-[]->(neigh:%s)" % (id, e, label)
