@@ -86,11 +86,11 @@ class SetById(Resource):
                     if neo4j.query_neo4j(query).single()['value'] != entry['value']:
                         query = "MATCH (n)--(l:Link:Prop)--(p:Property:%s) WHERE ID(n) = %s AND ID(p) = %s WITH l OPTIONAL MATCH (l)-[HAS]->(l2:Link) DETACH DELETE l, l2" % (key, id, entry['pid'])
                         neo4j.query_neo4j(query)
-                        query = "MERGE (p:Property:%s {value: '%s'}) WITH p MATCH (n) WHERE ID(n) = %s" % (key, entry['value'], id)
+                        query = 'MERGE (p:Property:%s {value: "%s"}) WITH p MATCH (n) WHERE ID(n) = %s' % (key, entry['value'].replace('"',"'"), id)
                         query += " WITH p, n MERGE (n)-[:HAS]->(:Link:Prop)-[:IS]->(p)"
                     neo4j.query_neo4j(query)
                 elif key != 'create' and key != 'source' and key != 'target' and 'pid' in entry.keys() and entry['pid'] < 0:
-                    query = "MERGE (p:Property:%s {value: '%s'}) WITH p MATCH (n) WHERE ID(n) = %s" % (key, entry['value'], id)
+                    query = 'MERGE (p:Property:%s {value: "%s"}) WITH p MATCH (n) WHERE ID(n) = %s' % (key, entry['value'].replace('"',"'"), id)
                     query += " WITH p, n MERGE (n)-[:HAS]->(:Link:Prop)-[:IS]->(p) RETURN ID(p) as pid"
                     newPid[entry['pid']] = neo4j.query_neo4j(query).single()['pid']
         for key in node:
@@ -144,11 +144,11 @@ class CreateNode(Resource):
                     if neo4j.query_neo4j(query).single()['value'] != entry['value']:
                         query = "MATCH (n)--(l:Link:Prop)--(p:Property:%s) WHERE ID(n) = %s AND ID(p) = %s WITH l OPTIONAL MATCH (l)-[HAS]->(l2:Link) DETACH DELETE l, l2" % (key, id, entry['pid'])
                         neo4j.query_neo4j(query)
-                        query = "MERGE (p:Property:%s {value: '%s'}) WITH p MATCH (n) WHERE ID(n) = %s" % (key, entry['value'], id)
+                        query = 'MERGE (p:Property:%s {value: "%s"}) WITH p MATCH (n) WHERE ID(n) = %s' % (key, entry['value'].replace('"',"'"), id)
                         query += " WITH p, n MERGE (n)-[:HAS]->(:Link:Prop)-[:IS]->(p)"
                     neo4j.query_neo4j(query)
                 elif key != 'create' and 'pid' in entry.keys() and 'value' in entry.keys() and entry['pid'] < 0 and entry['value']:
-                    query = "MERGE (p:Property:%s {value: '%s'}) WITH p MATCH (n) WHERE ID(n) = %s" % (key, entry['value'], id)
+                    query = 'MERGE (p:Property:%s {value: "%s"}) WITH p MATCH (n) WHERE ID(n) = %s' % (key, entry['value'].replace('"',"'"), id)
                     query += " WITH p, n MERGE (n)-[:HAS]->(:Link:Prop)-[:IS]->(p) RETURN ID(p) as pid"
                     newPid[entry['pid']] = neo4j.query_neo4j(query).single()['pid']
         for key in node:
