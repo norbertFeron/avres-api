@@ -1,6 +1,6 @@
-# Graph Ryder Api
+# Avres Api
 This is a simple Rest full Api to interact with neo4j database using the tulip-python library.
-Big computation are made server side to provide a light weight ui: [GraphRyderDashboard](https://github.com/norbertFeron/graph-ryder-dashboard)
+Big computation are made server side to provide a light weight ui: [AvresDashboard](https://github.com/norbertFeron/avres-dashboard)
 
 ####1. change config file
 ```
@@ -30,11 +30,11 @@ python app.py
 ## Docker Installation
 ####2. build
 ```
-docker build -t graph-ryder-api .
+docker build -t avres-api .
 ```
 ####3. run
 ```
-docker run -d -p 5000:5000 --name my-graph-ryder-api graph-ryder-api
+docker run -d -p 5000:5000 --name my-avres-api avres-api
 ```
 If you launch neo4j in a container you have to link it with '--link' option
 ```
