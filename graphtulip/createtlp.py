@@ -66,6 +66,56 @@ class CreateTlp(object):
                     return tlp.Color(int(color[0].replace('rgb(', '')), int(color[1]), int(color[2][:-1]))
         return tlp.Color(49, 130, 189)
 
+    def getProperty(self, id):
+        result = []
+        element = {}
+        query = "MATCH (n)--(l:Link:Prop)--(p:Property) WHERE ID(n) = %s" % id
+        query += " OPTIONAL MATCH (l)-->(la:Link:Attr)-->(a:Node)"
+        query += " RETURN labels(p) as labels, p.value as value, ID(p) as pid, collect(id(la)) as laid"
+        result = neo4j.query_neo4j(query)
+        for record in result:
+            label = record['labels']
+            label.remove('Property')
+            if not label[0] in element.keys():
+                element[label[0]] = []
+            prop = {"pid": record['pid'], "value": record['value']}
+            element[label[0]].append(prop)
+
+        ####### Attributes #######
+        attrs = []
+        q = "MATCH (n)-[:HAS]->(:Link:Attr)-[:IS]->(k)"
+        q += " WHERE ID(n) = %s RETURN COLLECT(DISTINCT labels(k)) as attr" % id
+        result = neo4j.query_neo4j(q)
+        attributes = result.single()['attr']
+        for a in attributes:
+            if 'Attribute' in a:
+                a.remove('Attribute')
+            if 'Node' in a:
+                a.remove('Node')
+            if 'Geo' in a:
+                a.remove('Geo')
+            if 'Time' in a:
+                a.remove('Time')
+            if 'SubGraph' in a:
+                a.remove('SubGraph')
+            attrs.append(a[0])  # Unpack
+        if attrs:
+            for attribute in attrs:
+                query = "MATCH (n) WHERE ID(n) = %s" % id
+                query += " WITH n"
+                query += " MATCH (n)-[:HAS]->(l:Link:Attr)-[:IS]->(%s:%s)" % (attribute.replace(':', ''), attribute)
+                # if attribute.split(':')[0] == 'Geo' or attribute.split(':')[0] == 'Time':
+                query += " RETURN l.type as type, collect(DISTINCT ID(l)) as aid%s, collect(DISTINCT ID(%s)) as %s " % (attribute.replace(':', ''), attribute.replace(':', ''), attribute.replace(':', ''))
+                result = neo4j.query_neo4j(query)
+                for record in result:
+                    elements = []
+                    i = 0
+                    for e in record[attribute.replace(':', '')]:
+                        elements.append({'id': e, 'laid': record['aid' + attribute.replace(':', '')][i]})
+                        i += 1
+                    element[attribute + ':' + record['type']] = elements
+        return element
+
     def addNode(self, record, key, args):
         n = self.tulip_graph.addNode()
         self.property_id[n] = str(record['id_%s' % key])
@@ -80,6 +130,19 @@ class CreateTlp(object):
             self.property_label[n] = str(record['label_%s' % key])
         else:
             self.property_label[n] = str(self.getLabel(record['id_%s' % key], record['labels_%s' % key]))
+        if args['format'] == 'csv' and args['target'] == 'nodes':
+            property = self.getProperty(record['id_%s' % key])
+            for key in property.keys():
+                prop = []
+                for p in property[key]:
+                    if 'value' in p.keys():
+                        if isinstance(p['value'], type('')): 
+                            prop.append(p['value'].replace("'", " "))
+                        else:
+                            prop.append(p['value'])
+                    elif 'id' in p.keys():
+                        prop.append(p['id'])
+                self.tulip_graph[key][n] = str(prop)[1:-1]
         return n
 
     def addEdge(self, record, key, args, n1, n2, duplicate=False):
@@ -98,6 +161,19 @@ class CreateTlp(object):
             self.property_label[e] = str(record['label_%s' % key])
         else:
             self.property_label[e] = str(self.getLabel(record['id_%s' % key], str(record['labels_%s' % key])))
+        if args['format'] == 'csv' and args['target'] == 'edges':
+            property = self.getProperty(record['id_%s' % key])
+            for key in property.keys():
+                prop = []
+                for p in property[key]:
+                    if 'value' in p.keys():
+                        if isinstance(p['value'], type('')): 
+                            prop.append(p['value'].replace("'", " "))
+                        else:
+                            prop.append(p['value'])
+                    elif 'id' in p.keys():
+                        prop.append(p['id'])
+                self.tulip_graph[key][e] = str(prop)[1:-1]
         return e
 
     def createGraphQuery(self, args):

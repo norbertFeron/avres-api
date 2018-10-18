@@ -1,5 +1,5 @@
 from flask_restful import reqparse
-from flask import make_response
+from flask import make_response, send_file
 from tulip import tlp
 import configparser
 import json
@@ -80,6 +80,13 @@ def makeHtmlResponse(result, code=200):
     response.headers.add('Content-Type', 'text/html')
     return response
 
+def makeCsvResponse(result, code=200):
+    response = make_response(result, code)
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+    response.headers.add('Content-Type', 'text/csv')
+    return response
 
 def getJson(graph, params={'edge_type': 'arrow'}):
     property_id = graph.getStringProperty("neo4j_id")
@@ -183,3 +190,7 @@ def getHtml(graph):
     html += "\n\ts = new sigma({ graph: g, container: 'graph-container'});\n"
     html += '</script>'
     return html
+
+def getCsv(graph, target):
+    tlp.exportGraph('CSV Export', graph, 'export.csv', {'Type of elements': target, 'Field separator': ' , '})
+    return send_file('export.csv', mimetype='text/csv', as_attachment=True, attachment_filename='export.csv')

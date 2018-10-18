@@ -5,7 +5,7 @@ import time
 from tulip import tlp
 from flask_restful import Resource, reqparse, abort
 from neo4j.v1.exceptions import CypherError
-from routes.utils import makeResponse, getJson, getHtml, makeHtmlResponse, applyLayout
+from routes.utils import makeResponse, getJson, getHtml, getCsv, makeHtmlResponse, makeCsvResponse, applyLayout
 from graphtulip.createtlp import CreateTlp
 
 
@@ -15,6 +15,7 @@ config.read("config.ini")
 parser = reqparse.RequestParser()
 parser.add_argument('layout')
 parser.add_argument('format')
+parser.add_argument('target')
 parser.add_argument('depth')
 parser.add_argument('label_key_left')
 parser.add_argument('label_key_right')
@@ -67,6 +68,8 @@ class GetQueryGraph(Resource):
         applyLayout(graph, args['layout'])
         if args['format'] == 'html':
             return makeHtmlResponse(getHtml(graph), 200)
+        elif args['format'] == 'csv':
+            return makeCsvResponse(getCsv(graph, args['target']), 200)
         else:
             return makeResponse(getJson(graph), 200)
 
