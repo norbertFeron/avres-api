@@ -147,6 +147,8 @@ class CreateTlp(object):
 
     def addEdge(self, record, key, args, n1, n2, duplicate=False):
         e = self.tulip_graph.addEdge(n1, n2)
+        self.tulip_graph['source_id'][e] = self.property_id.getNodeStringValue(n1)
+        self.tulip_graph['target_id'][e] = self.property_id.getNodeStringValue(n2)
         if duplicate:
             self.property_id[e] = 'd%s_%s' % (duplicate, str(record['id_%s' % key]))
         else:
